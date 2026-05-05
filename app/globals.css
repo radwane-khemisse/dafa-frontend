@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #faf7ef;
+  color: #25231f;
+  font-family: var(--font-ibm-plex-arabic), var(--font-noto-arabic), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+  letter-spacing: 0;
+  word-spacing: 0.04em;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  line-height: 1.28;
+  word-spacing: 0.03em;
+}
+
+p,
+li,
+summary,
+label {
+  line-height: 1.85;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: #c8943d;
+  color: #25231f;
+}
+
+.container-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin-inline: auto;
+}
+
+.focus-ring {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.focus-ring:focus-visible {
+  outline-color: #c8943d;
+}
+
+.brand-latin {
+  direction: ltr;
+  font-family: var(--font-logo-latin), Georgia, "Times New Roman", serif;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  word-spacing: 0.06em;
+}
