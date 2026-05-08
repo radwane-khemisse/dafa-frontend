@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Bricolage_Grotesque, IBM_Plex_Sans_Arabic, Noto_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { PixelScripts } from "@/components/tracking/pixel-scripts";
+import { AnalyticsTracker } from "@/components/tracking/analytics-tracker";
 import { TrustTicker } from "@/components/layout/trust-ticker";
 
 const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
@@ -41,6 +43,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         className={`${ibmPlexSansArabic.variable} ${notoSansArabic.variable} ${bricolageGrotesque.variable} flex min-h-screen flex-col`}
       >
         <PixelScripts />
+        <Suspense fallback={null}>
+          <AnalyticsTracker />
+        </Suspense>
         <Header />
         <TrustTicker />
         <main className="flex-1">{children}</main>

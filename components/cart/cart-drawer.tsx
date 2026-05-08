@@ -72,6 +72,8 @@ export function CartDrawer() {
           "dafa-kitchen-last-order",
           JSON.stringify({
             orderId: response.order_id,
+            customerName: values.name,
+            phone: normalized.e164,
             total: finalTotal,
             items: finalItems,
             createdAt: new Date().toISOString(),

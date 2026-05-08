@@ -4,6 +4,7 @@ import { OfferSelector } from "@/components/product/offer-selector";
 import { ProductCard } from "@/components/product/product-card";
 import { ReviewCard } from "@/components/product/review-card";
 import { StickyProductCta } from "@/components/product/sticky-product-cta";
+import { ProductViewTracker } from "@/components/tracking/product-view-tracker";
 import { ProductVisual } from "@/components/ui/product-visual";
 import { getCrossSells, getProductBySlug, products } from "@/data/products";
 
@@ -19,6 +20,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
+      <ProductViewTracker productId={product.id} />
       <section className="bg-warm-100 py-10 md:py-14">
         <div className="container-shell grid items-start gap-8 lg:grid-cols-[0.9fr_1fr] lg:[direction:ltr]">
           <div className="order-2 lg:order-1 lg:col-start-1 lg:row-start-1 lg:[direction:rtl]">
