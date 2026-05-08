@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import type { Product } from "@/data/products";
 import { Button } from "@/components/ui/button";
 import { ProductVisual } from "@/components/ui/product-visual";
@@ -31,18 +31,8 @@ export function ProductCard({ product }: { product: Product }) {
           </span>
         </div>
         <h3 className="text-xl font-black">{product.nameAr}</h3>
-        <p className="mt-2 text-sm font-bold leading-7 text-date">{product.headlineAr}</p>
-        <p className="mt-2 text-sm leading-7 text-charcoal/65">{product.subheadingAr}</p>
-        <div className="mt-4 grid gap-2">
-          {product.benefits.slice(0, 2).map((benefit) => (
-            <div key={benefit} className="flex gap-2 rounded-xl bg-warm-50 p-3 text-xs font-bold leading-6 text-charcoal/75">
-              <CheckCircle2 size={16} className="mt-1 shrink-0 text-olive" />
-              <span>{benefit}</span>
-            </div>
-          ))}
-        </div>
         <div className="mt-4 rounded-xl border border-gold/35 bg-[#FFF7E4] p-3 text-xs font-black leading-6 text-date">
-          دفع عند الاستلام، اتصال تأكيد قبل الشحن، وضمان ذهبي 30 يوم.
+          الدفع عند الاستلام، اتصال تأكيد قبل الشحن، وضمان ذهبي 30 يوم.
         </div>
         <div className="mt-4 flex items-center justify-between gap-3">
           <div>

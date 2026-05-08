@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Award, Banknote, CheckCircle2, Star, Truck } from "lucide-react";
+import { Award, Banknote, CheckCircle2, PackageCheck, Settings2, Star, Truck } from "lucide-react";
 import { OfferSelector } from "@/components/product/offer-selector";
 import { ProductCard } from "@/components/product/product-card";
 import { ReviewCard } from "@/components/product/review-card";
@@ -39,27 +39,27 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 {product.ratingCount.toLocaleString("ar-SA")} تقييم
               </span>
             </div>
-            <div className="mt-4 grid gap-2 sm:grid-cols-3">
-              <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-3 text-xs font-black text-charcoal shadow-soft">
-                <Banknote size={18} className="text-olive" />
-                دفع عند الاستلام
-              </div>
-              <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-3 text-xs font-black text-charcoal shadow-soft">
-                <Truck size={18} className="text-clay" />
-                شحن سريع للسعودية
-              </div>
-              <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-3 text-xs font-black text-charcoal shadow-soft">
-                <Award size={18} className="text-gold" />
-                ضمان ذهبي 30 يوم
-              </div>
-            </div>
-            <p className="mt-4 text-xl font-black leading-9 text-date">{product.headlineAr}</p>
-            <p className="mt-4 max-w-2xl leading-8 text-charcoal/70">{product.subheadingAr}</p>
             <div id="product-offer" className="mt-6 scroll-mt-28">
               <OfferSelector product={product} />
             </div>
           </div>
-          <ProductVisual product={product} className="order-1 lg:order-2 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-32" />
+          <ProductVisual product={product} ratio="square" className="order-1 lg:order-2 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-32" />
+        </div>
+        <div className="container-shell mt-5 overflow-x-auto pb-1">
+          <div className="flex min-w-max gap-3 md:min-w-0 md:grid md:grid-cols-3">
+            {[
+              [Banknote, "الدفع عند الاستلام"],
+              [Truck, "شحن سريع للسعودية"],
+              [Award, "ضمان ذهبي 30 يوم"],
+            ].map(([Icon, text]) => (
+              <div key={text as string} className="flex min-w-48 items-center gap-3 rounded-2xl border border-charcoal/10 bg-white px-4 py-3 text-sm font-black text-charcoal shadow-soft">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-warm-100 text-olive">
+                  <Icon size={19} />
+                </span>
+                <span>{text as string}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -73,18 +73,20 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </section>
 
       <section className="bg-white py-14">
-        <div className="container-shell grid gap-8 md:grid-cols-2">
+        <div className="container-shell grid items-center gap-8 md:grid-cols-[0.9fr_1fr]">
           <div className="order-2 md:order-1">
-            <ProductVisual product={product} label="تفاصيل المنتج" />
+            <ProductVisual product={product} label="تفاصيل المنتج" ratio="wide" className="rounded-3xl" />
           </div>
           <div className="order-1 md:order-2">
             <p className="text-sm font-black text-date">الفوائد</p>
             <h2 className="mt-3 text-3xl font-black">ليش راح تحبينه من أول أسبوع؟</h2>
-            <div className="mt-6 grid gap-3">
-              {product.benefits.map((benefit) => (
-                <div key={benefit} className="flex gap-3 rounded-2xl bg-warm-50 p-4">
-                  <CheckCircle2 className="mt-1 shrink-0 text-olive" size={20} />
-                  <span className="font-bold leading-7">{benefit}</span>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              {product.benefits.map((benefit, index) => (
+                <div key={benefit} className="relative overflow-hidden rounded-3xl border border-charcoal/10 bg-warm-50 p-4">
+                  <span className="mb-4 grid h-9 w-9 place-items-center rounded-xl bg-olive text-sm font-black text-white">
+                    {index + 1}
+                  </span>
+                  <span className="block font-bold leading-7">{benefit}</span>
                 </div>
               ))}
             </div>
@@ -110,22 +112,42 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
       </section>
 
-      <section className="container-shell grid gap-5 py-14 md:grid-cols-2">
-        <div className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-soft">
-          <h2 className="text-2xl font-black">تفاصيل عملية</h2>
-          <ul className="mt-5 grid gap-3">
+      <section className="container-shell py-14">
+        <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="rounded-3xl border border-charcoal/10 bg-white p-6 shadow-soft">
+          <div className="flex items-center gap-3">
+            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-warm-100 text-olive">
+              <Settings2 size={22} />
+            </span>
+            <div>
+              <p className="text-sm font-black text-date">اختيار دفا</p>
+              <h2 className="text-2xl font-black">نقاط عملية قبل الطلب</h2>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {product.specs.map((spec) => (
-              <li key={spec} className="rounded-xl bg-warm-50 p-3 text-sm font-bold leading-7">{spec}</li>
+              <div key={spec} className="flex gap-3 rounded-2xl bg-warm-50 p-4 text-sm font-bold leading-7">
+                <CheckCircle2 className="mt-1 shrink-0 text-olive" size={18} />
+                <span>{spec}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
-        <div className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-soft">
-          <h2 className="text-2xl font-black">محتويات الطلب</h2>
-          <ul className="mt-5 grid gap-3">
+        <div className="rounded-3xl bg-olive p-6 text-white shadow-soft">
+          <PackageCheck className="mb-5 text-gold" size={34} />
+          <p className="text-sm font-black text-gold">داخل الطلب</p>
+          <h2 className="mt-2 text-2xl font-black">كل شيء تحتاجينه لاستخدام المنتج</h2>
+          <div className="mt-6 flex flex-wrap gap-2">
             {product.included.map((item) => (
-              <li key={item} className="rounded-xl bg-warm-50 p-3 text-sm font-bold leading-7">{item}</li>
+              <span key={item} className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white/85">
+                {item}
+              </span>
             ))}
-          </ul>
+          </div>
+          <p className="mt-6 rounded-2xl bg-white/10 p-4 text-sm font-bold leading-7 text-white/75">
+            نركز على التفاصيل التي تساعدك تقررين بثقة قبل الشحن، بدون حشو زائد.
+          </p>
+        </div>
         </div>
       </section>
 

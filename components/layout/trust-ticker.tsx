@@ -21,7 +21,7 @@ const messages = [
   },
   {
     icon: ShieldCheck,
-    title: "دفع عند الاستلام",
+    title: "الدفع عند الاستلام",
     text: "اطلبي بثقة داخل السعودية",
   },
 ];

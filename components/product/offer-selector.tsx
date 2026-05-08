@@ -39,18 +39,23 @@ export function OfferSelector({ product, compact = false }: { product: Product; 
         <span className="rounded-full bg-warm-100 px-3 py-1 text-xs font-black text-date">وفر أكثر مع 2 أو 3</span>
       </div>
 
-      <div className="grid gap-3">
+      <div className="grid gap-4 pt-2">
         {product.offers.map((candidate) => (
           <button
             key={candidate.id}
             type="button"
             onClick={() => setSelectedOffer(candidate.id)}
-            className={`focus-ring flex items-center justify-between rounded-xl border p-3 text-start transition ${
+            className={`focus-ring relative flex items-center justify-between rounded-xl border p-3 text-start transition ${
               selectedOffer === candidate.id
                 ? "border-gold bg-[#FFF8E8]"
                 : "border-charcoal/10 bg-warm-50 hover:bg-white"
             }`}
           >
+            {candidate.badge ? (
+              <span className="absolute -top-3 left-5  rounded-full border border-gold bg-white px-3 py-1 text-[11px] font-black text-date shadow-soft">
+                {candidate.badge}
+              </span>
+            ) : null}
             <span className="flex items-center gap-3">
               <span
                 className={`flex h-6 w-6 items-center justify-center rounded-full border ${
@@ -64,7 +69,6 @@ export function OfferSelector({ product, compact = false }: { product: Product; 
                 <span className="text-xs font-bold text-charcoal/55">
                   {Math.round(candidate.price / candidate.quantity)} ريال للقطعة
                 </span>
-                {candidate.badge ? <span className="block text-xs font-bold text-olive">{candidate.badge}</span> : null}
               </span>
             </span>
             <span className="text-lg font-black">{candidate.price} ريال</span>

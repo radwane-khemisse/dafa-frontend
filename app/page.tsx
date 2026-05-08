@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Banknote, CheckCircle2, ClipboardCheck, PhoneCall, Ruler, ShieldCheck, Sparkles, Wrench } from "lucide-react";
 import { ProductCard } from "@/components/product/product-card";
 import { ReviewCard } from "@/components/product/review-card";
 import { ButtonLink } from "@/components/ui/button";
@@ -21,8 +21,20 @@ export default function HomePage() {
               مو كل أداة منتشرة تستاهل الشراء. نختار أدوات يومية واضحة للبيت السعودي: تجهز أسرع، ترتب الدولاب، وتخلي الحوض والسطح أهدأ بعد الغسيل.
             </p>
             <div className="mt-6 grid gap-3 text-sm font-black sm:grid-cols-3">
-              {["COD داخل السعودية", "اتصال تأكيد قبل الشحن", "ضمان ذهبي 30 يوم"].map((item) => (
-                <div key={item} className="rounded-xl bg-white px-4 py-3 text-center shadow-soft">{item}</div>
+              {[
+                [Banknote, "الدفع عند الاستلام"],
+                [PhoneCall, "اتصال تأكيد قبل الشحن"],
+                [ShieldCheck, "ضمان ذهبي 30 يوم"],
+              ].map(([Icon, item]) => (
+                <div key={item as string} className="group relative overflow-hidden rounded-2xl border border-charcoal/10 bg-white p-4 shadow-soft">
+                  <div className="absolute inset-y-0 right-0 w-1 bg-gold" />
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-olive text-gold transition group-hover:scale-105">
+                      <Icon size={19} />
+                    </span>
+                    <span>{item as string}</span>
+                  </div>
+                </div>
               ))}
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -83,9 +95,23 @@ export default function HomePage() {
           </p>
         </div>
         <div className="grid gap-4">
-          {["مشكلة يومية في المطبخ", "استخدام مفهوم بدون شرح طويل", "مقاس وفائدة واضحين قبل الطلب", "COD، اتصال تأكيد، وضمان ذهبي"].map((item) => (
-            <div key={item} className="rounded-2xl border border-charcoal/10 bg-white p-5 font-black shadow-soft">
-              {item}
+          {[
+            [Sparkles, "مشكلة يومية في المطبخ", "ما نختار منتج إلا إذا كان يحل لحظة مزعجة تتكرر في البيت."],
+            [Wrench, "استخدام مفهوم بسرعة", "الأداة لازم تنفهم من أول نظرة وبدون شرح طويل."],
+            [Ruler, "مقاس وفائدة واضحين", "نوضح لك وين تستخدمينها ولماذا تستاهل مكانها."],
+            [ClipboardCheck, "طلب مطمئن", "الدفع عند الاستلام، اتصال تأكيد، وضمان ذهبي."],
+          ].map(([Icon, title, body]) => (
+            <div key={title as string} className="relative overflow-hidden rounded-3xl border border-charcoal/10 bg-white p-5 shadow-soft">
+              <div className="absolute -left-8 -top-8 h-24 w-24 rounded-full bg-gold/15" />
+              <div className="relative flex gap-4">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-warm-100 text-olive">
+                  <Icon size={22} />
+                </span>
+                <span>
+                  <span className="block font-black">{title as string}</span>
+                  <span className="mt-1 block text-sm font-bold leading-7 text-charcoal/60">{body as string}</span>
+                </span>
+              </div>
             </div>
           ))}
         </div>

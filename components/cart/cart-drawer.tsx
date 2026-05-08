@@ -171,7 +171,6 @@ export function CartDrawer() {
                       <ProductVisual product={product} compact className="w-24 shrink-0 rounded-xl shadow-none" />
                       <span className="min-w-0">
                       <span className="block font-black">{product.nameAr}</span>
-                      <span className="line-clamp-2 text-xs text-charcoal/60">{product.headlineAr}</span>
                       <span className="text-xs text-charcoal/60">أضيفيها للطلب من 199 ريال</span>
                       </span>
                     </span>
@@ -422,7 +421,7 @@ function UpsellModal({
                 <ProductVisual product={product} compact className="w-24 shrink-0 rounded-xl shadow-none" />
                 <span className="min-w-0">
                   <span className="block font-black">{product.nameAr}</span>
-                  <span className="line-clamp-2 text-xs text-charcoal/60">{product.headlineAr}</span>
+                  <span className="text-xs font-black text-date">عرض خاص مع نفس الشحنة</span>
                 </span>
               </span>
               <span
