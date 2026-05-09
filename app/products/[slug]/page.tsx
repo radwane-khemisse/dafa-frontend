@@ -21,7 +21,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   return (
     <>
       <ProductViewTracker productId={product.id} />
-      <section className="bg-warm-100 py-10 md:py-14">
+      <section className="bg-warm-100 pb-5 pt-10 md:pb-7 md:pt-14">
         <div className="container-shell grid items-start gap-8 lg:grid-cols-[0.9fr_1fr] lg:[direction:ltr]">
           <div className="order-2 lg:order-1 lg:col-start-1 lg:row-start-1 lg:[direction:rtl]">
             <p className="mb-4 inline-flex rounded-full bg-white px-4 py-2 text-sm font-black text-date shadow-soft">
@@ -47,16 +47,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
           <ProductVisual product={product} ratio="square" className="order-1 lg:order-2 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-32" />
         </div>
-        <div className="container-shell mt-5 overflow-x-auto pb-1">
-          <div className="flex min-w-max gap-3 md:min-w-0 md:grid md:grid-cols-3">
+        <div className="container-shell mt-6 overflow-x-auto pb-1">
+          <div className="flex min-w-max gap-4 md:min-w-0 md:grid md:grid-cols-3">
             {[
               [Banknote, "الدفع عند الاستلام"],
               [Truck, "شحن سريع للسعودية"],
               [Award, "ضمان ذهبي 30 يوم"],
             ].map(([Icon, text]) => (
-              <div key={text as string} className="flex min-w-48 items-center gap-3 rounded-2xl border border-charcoal/10 bg-white px-4 py-3 text-sm font-black text-charcoal shadow-soft">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-warm-100 text-olive">
-                  <Icon size={19} />
+              <div key={text as string} className="flex min-w-60 items-center gap-4 rounded-2xl border border-charcoal/10 bg-white px-5 py-4 text-base font-black text-charcoal shadow-soft md:min-w-0 md:text-lg">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-warm-100 text-olive md:h-14 md:w-14">
+                  <Icon size={24} />
                 </span>
                 <span>{text as string}</span>
               </div>
@@ -65,7 +65,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
       </section>
 
-      <section className="container-shell grid items-center gap-8 py-12 md:grid-cols-2">
+      <section className="container-shell grid items-center gap-8 pb-12 pt-7 md:grid-cols-2 md:pt-9">
         <div>
           <p className="text-sm font-black text-olive">المشكلة اللي تحسينها كل يوم</p>
           <h2 className="mt-3 text-3xl font-black leading-tight">{product.painAr}</h2>

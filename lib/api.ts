@@ -49,6 +49,5 @@ export async function createOrder(input: CreateOrderInput) {
     throw new Error(body.detail || "تعذر تأكيد الطلب، حاولي مرة أخرى.");
   }
 
-  return response.json() as Promise<{ ok: boolean; order_id: string; status: string }>;
+  return response.json() as Promise<{ ok: boolean; order_id: string; purchase_event_id: string; status: string }>;
 }
-

@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { Banknote, PhoneCall, ShieldCheck, Star } from "lucide-react";
 import type { Product } from "@/data/products";
 import { Button } from "@/components/ui/button";
 import { ProductVisual } from "@/components/ui/product-visual";
 import { makeCartItem, useCartStore } from "@/store/cart-store";
 import { createEventId } from "@/lib/event-id";
-import { trackPixelEvent } from "@/lib/tracking";
+import { trackEvent } from "@/lib/tracking";
 
 export function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem);
@@ -15,7 +15,23 @@ export function ProductCard({ product }: { product: Product }) {
   function addDefaultOffer() {
     const item = makeCartItem(product, "two");
     addItem(item);
-    trackPixelEvent("AddToCart", { value: item.totalPrice, currency: "SAR", content_ids: [product.id] }, createEventId("atc"));
+    trackEvent("AddToCart", {
+      eventId: createEventId("atc"),
+      value: item.totalPrice,
+      currency: "SAR",
+      productId: product.id,
+      contentIds: [product.id],
+      contentName: product.nameAr,
+      items: [
+        {
+          product_id: product.id,
+          title_ar: product.nameAr,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          total_price: item.totalPrice,
+        },
+      ],
+    });
   }
 
   return (
@@ -31,8 +47,20 @@ export function ProductCard({ product }: { product: Product }) {
           </span>
         </div>
         <h3 className="text-xl font-black">{product.nameAr}</h3>
-        <div className="mt-4 rounded-xl border border-gold/35 bg-[#FFF7E4] p-3 text-xs font-black leading-6 text-date">
-          الدفع عند الاستلام، اتصال تأكيد قبل الشحن، وضمان ذهبي 30 يوم.
+        <p className="mt-3 text-sm font-bold leading-7 text-charcoal/65">{product.subheadingAr}</p>
+        <div className="mt-4 grid gap-2 rounded-xl border border-gold/35 bg-[#FFF7E4] p-4 text-sm font-black leading-7 text-date">
+          <span className="flex items-center gap-2">
+            <Banknote size={19} className="shrink-0 text-gold" />
+            الدفع عند الاستلام
+          </span>
+          <span className="flex items-center gap-2">
+            <PhoneCall size={19} className="shrink-0 text-gold" />
+            اتصال تأكيد قبل الشحن
+          </span>
+          <span className="flex items-center gap-2">
+            <ShieldCheck size={19} className="shrink-0 text-gold" />
+            ضمان ذهبي 30 يوم
+          </span>
         </div>
         <div className="mt-4 flex items-center justify-between gap-3">
           <div>

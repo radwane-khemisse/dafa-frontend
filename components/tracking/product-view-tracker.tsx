@@ -1,11 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { trackAnalyticsEvent } from "@/lib/tracking";
+import { createEventId } from "@/lib/event-id";
+import { trackEvent } from "@/lib/tracking";
 
 export function ProductViewTracker({ productId }: { productId: string }) {
   useEffect(() => {
-    trackAnalyticsEvent("ViewProduct", { productId, metadata: { product_id: productId } });
+    trackEvent("ViewProduct", {
+      eventId: createEventId("view_product"),
+      productId,
+      contentIds: [productId],
+      metadata: { product_id: productId },
+    });
   }, [productId]);
 
   return null;

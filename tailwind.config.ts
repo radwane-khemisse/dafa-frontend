@@ -21,6 +21,7 @@ const config: Config = {
         clay: "#B6653F",
         copper: "#955037",
         gold: "#C8943D",
+        discount: "#168456",
       },
       boxShadow: {
         soft: "0 18px 60px rgba(36, 33, 28, 0.08)",

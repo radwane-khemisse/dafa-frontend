@@ -95,7 +95,7 @@ export function ThankYouSummary({ fallbackOrderId, fallbackTotal }: { fallbackOr
         </div>
       </section>
 
-      <section className="grid gap-5 lg:grid-cols-[1fr_0.74fr]">
+      <section className="grid gap-5">
         <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-soft md:p-6">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -141,12 +141,16 @@ export function ThankYouSummary({ fallbackOrderId, fallbackTotal }: { fallbackOr
 
         <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-soft md:p-6">
           <p className="text-sm font-black text-olive">بعد الرد على المكالمة</p>
-          <h2 className="mt-1 text-2xl font-black">الخطوات واضحة</h2>
-          <div className="mt-6 grid gap-5">
+          <h2 className="mt-1 text-2xl font-black">تقدم الطلب خطوة بخطوة</h2>
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            <TimelineItem icon={CheckCircle2} title="تم تسجيل الطلب" text="وصلنا طلبك وحفظنا رقمه في النظام." />
             <TimelineItem icon={Headphones} title="تأكيد سريع" text="نتأكد من المنتج، المبلغ، ورقم الجوال." />
             <TimelineItem icon={MapPin} title="عنوان واضح" text="نراجع المدينة والحي وأقرب معلم لتقليل تأخير التوصيل." />
             <TimelineItem icon={PackageCheck} title="تجهيز الشحنة" text="بعد التأكيد نبدأ تجهيز الطلب للشحن." />
-            <TimelineItem icon={Truck} title="الدفع عند الاستلام" text="تدفعين فقط عند وصول الطلب." />
+          </div>
+          <div className="mt-4 rounded-xl bg-warm-50 px-4 py-3 text-sm font-black text-date">
+            <Truck size={16} className="ml-2 inline" />
+            الدفع يكون عند الاستلام بعد وصول الطلب.
           </div>
         </div>
       </section>

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, PhoneCall, Plus, ShieldCheck, Trash2, X } from "lucide-react";
+import { PhoneCall, Plus, ShieldCheck, Trash2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { createOrder } from "@/lib/api";
 import { createEventId } from "@/lib/event-id";
 import { normalizeKsaPhone } from "@/lib/phone";
-import { trackPixelEvent } from "@/lib/tracking";
+import { trackEvent } from "@/lib/tracking";
 import { makeCartItem, useCartStore, type CartItem } from "@/store/cart-store";
 import { ProductVisual } from "@/components/ui/product-visual";
 
@@ -33,18 +33,48 @@ export function CartDrawer() {
   const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
   const productIds = items.map((item) => item.productId);
   const crossSells = getCrossSells(productIds);
-  const upsellOptions = useMemo(() => getCrossSells(productIds), [productIds]);
+  const upsellOptions = useMemo(() => getCrossSells(productIds).slice(0, 1), [productIds]);
+  const trackingItems = items.map((item) => ({
+    product_id: item.productId,
+    title_ar: item.titleAr,
+    quantity: item.quantity,
+    unit_price: item.unitPrice,
+    total_price: item.totalPrice,
+  }));
 
   function addCrossSell(product: Product) {
-    addItem(makeCartItem(product, "one"));
-    trackPixelEvent("AddToCart", { value: 199, currency: "SAR", content_ids: [product.id] }, createEventId("atc"));
+    const item = makeCartItem(product, "one");
+    addItem(item);
+    trackEvent("AddToCart", {
+      eventId: createEventId("atc"),
+      value: item.totalPrice,
+      currency: "SAR",
+      productId: product.id,
+      contentIds: [product.id],
+      contentName: product.nameAr,
+      items: [
+        {
+          product_id: product.id,
+          title_ar: product.nameAr,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          total_price: item.totalPrice,
+        },
+      ],
+    });
   }
 
   function startCheckout() {
     const eventId = createEventId("checkout");
     setPendingEventId(eventId);
     setCheckoutOpen(true);
-    trackPixelEvent("InitiateCheckout", { value: total, currency: "SAR", content_ids: productIds }, eventId);
+    trackEvent("InitiateCheckout", {
+      eventId,
+      value: total,
+      currency: "SAR",
+      contentIds: productIds,
+      items: trackingItems,
+    });
   }
 
   async function submitFinalOrder(values: CheckoutValues, eventId: string, acceptedUpsell: boolean, upsellItems: CartItem[] = []) {
@@ -80,16 +110,23 @@ export function CartDrawer() {
           }),
         );
       }
-      trackPixelEvent(
-        "Purchase",
-        {
-          value: finalTotal,
-          currency: "SAR",
-          content_ids: finalItems.map((item) => item.productId),
-          contents: finalItems.map((item) => ({ id: item.productId, quantity: item.quantity })),
-        },
-        eventId,
-      );
+      trackEvent("Purchase", {
+        eventId: response.purchase_event_id,
+        value: finalTotal,
+        currency: "SAR",
+        contentIds: finalItems.map((item) => item.productId),
+        items: finalItems.map((item) => ({
+          product_id: item.productId,
+          title_ar: item.titleAr,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          total_price: item.totalPrice,
+        })),
+        name: values.name,
+        phone: normalized.e164,
+        sendServer: false,
+        metadata: { order_id: response.order_id },
+      });
       clearCart();
       router.push(`/thank-you?order=${encodeURIComponent(response.order_id)}&total=${finalTotal}`);
     } catch (error) {
@@ -202,6 +239,15 @@ export function CartDrawer() {
           isSubmitting={isSubmitting}
           onClose={() => setCheckoutOpen(false)}
           onSubmit={(values) => {
+            trackEvent("Lead", {
+              eventId: createEventId("lead"),
+              value: total,
+              currency: "SAR",
+              contentIds: productIds,
+              items: trackingItems,
+              name: values.name,
+              phone: values.phone,
+            });
             setPendingCustomer(values);
             setCheckoutOpen(false);
             if (upsellOptions.length > 0) {
@@ -218,6 +264,15 @@ export function CartDrawer() {
           products={upsellOptions}
           isSubmitting={isSubmitting}
           onAccept={(selectedProducts) => {
+            trackEvent("UpsellAccepted", {
+              eventId: createEventId("upsell_accept"),
+              value: 99,
+              currency: "SAR",
+              productId: selectedProducts[0]?.id,
+              contentIds: selectedProducts.map((product) => product.id),
+              name: pendingCustomer.name,
+              phone: pendingCustomer.phone,
+            });
             void submitFinalOrder(
               pendingCustomer,
               pendingEventId,
@@ -225,7 +280,18 @@ export function CartDrawer() {
               selectedProducts.map((product) => makeCartItem(product, "upsell_99")),
             );
           }}
-          onSkip={() => void submitFinalOrder(pendingCustomer, pendingEventId, false)}
+          onSkip={() => {
+            trackEvent("UpsellRejected", {
+              eventId: createEventId("upsell_reject"),
+              value: total,
+              currency: "SAR",
+              contentIds: productIds,
+              items: trackingItems,
+              name: pendingCustomer.name,
+              phone: pendingCustomer.phone,
+            });
+            void submitFinalOrder(pendingCustomer, pendingEventId, false);
+          }}
         />
       ) : null}
     </>
@@ -335,14 +401,22 @@ function UpsellModal({
   onAccept: (products: Product[]) => void;
   onSkip: () => void;
 }) {
-  const offerSeconds = 20;
+  const offerSeconds = 30;
   const [secondsLeft, setSecondsLeft] = useState(offerSeconds);
-  const [selectedProductIds, setSelectedProductIds] = useState<Array<Product["id"]>>([]);
-  const selectedProducts = products.filter((product) => selectedProductIds.includes(product.id));
-  const upsellTotal = selectedProducts.length * 99;
-  const originalTotal = selectedProducts.length * 199;
-  const savings = originalTotal - upsellTotal;
+  const upsellProduct = products[0];
   const progress = (secondsLeft / offerSeconds) * 100;
+
+  useEffect(() => {
+    if (!upsellProduct) return;
+    trackEvent("UpsellView", {
+      eventId: createEventId("upsell_view"),
+      value: 99,
+      currency: "SAR",
+      productId: upsellProduct.id,
+      contentIds: [upsellProduct.id],
+      contentName: upsellProduct.nameAr,
+    });
+  }, [upsellProduct]);
 
   useEffect(() => {
     if (isSubmitting) return;
@@ -361,12 +435,6 @@ function UpsellModal({
 
     return () => window.clearInterval(timer);
   }, [isSubmitting, onSkip]);
-
-  function toggleProduct(productId: Product["id"]) {
-    setSelectedProductIds((current) =>
-      current.includes(productId) ? current.filter((id) => id !== productId) : [...current, productId],
-    );
-  }
 
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-charcoal/60 p-4">
@@ -387,61 +455,29 @@ function UpsellModal({
           </div>
         </div>
 
-        <div className="my-5 rounded-3xl border border-gold/35 bg-gradient-to-br from-[#FFF8E8] via-white to-[#EFE2CF] p-6 text-center">
-          <p className="text-sm font-black text-date">السعر الخاص الآن</p>
-          <div className="mt-2 flex items-end justify-center gap-3">
-            <span className="text-6xl font-black leading-none text-charcoal">{upsellTotal || 0}</span>
-            <span className="pb-2 text-xl font-black text-charcoal">ريال</span>
-          </div>
-          <p className="hidden">
-            بدلا من <span className="line-through">199 ريال</span> - وفري 100 ريال
-          </p>
-          <p className="mt-3 text-sm font-bold text-charcoal/55">
-            {selectedProducts.length > 0 ? (
-              <>
-                {selectedProducts.length} منتج x 99 ريال - بدلا من <span className="line-through">{originalTotal} ريال</span> - وفري {savings} ريال
-              </>
-            ) : (
-              "اختاري منتجا واحدا أو أكثر لحساب العرض"
-            )}
-          </p>
-        </div>
-
-        <div className="grid gap-3">
-          {products.map((product) => (
+        {upsellProduct ? (
+          <div className="my-5 grid gap-3">
             <button
-              key={product.id}
               type="button"
-              onClick={() => toggleProduct(product.id)}
-              className={`focus-ring flex items-center justify-between gap-4 rounded-2xl border p-3 text-start transition ${
-                selectedProductIds.includes(product.id)
-                  ? "border-gold bg-[#FFF8E8]"
-                  : "border-charcoal/10 bg-warm-50 hover:bg-white"
-              }`}
+              onClick={() => onAccept([upsellProduct])}
+              disabled={isSubmitting}
+              className="focus-ring grid gap-4 rounded-2xl border border-gold bg-[#FFF8E8] p-4 text-start transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-70"
             >
-              <span className="flex min-w-0 flex-1 items-center gap-3">
-                <ProductVisual product={product} compact className="w-24 shrink-0 rounded-xl shadow-none" />
+              <ProductVisual product={upsellProduct} ratio="wide" className="w-full rounded-xl shadow-none" />
+              <span className="flex min-w-0 items-center justify-between gap-3">
                 <span className="min-w-0">
-                  <span className="block font-black">{product.nameAr}</span>
-                  <span className="text-xs font-black text-date">عرض خاص مع نفس الشحنة</span>
+                  <span className="block font-black">{upsellProduct.nameAr}</span>
+                  <span className="mt-1 block text-sm font-black text-date">عرض خاص مع نفس الشحنة بـ 99 ريال فقط</span>
                 </span>
-              </span>
-              <span
-                className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg border ${
-                  selectedProductIds.includes(product.id) ? "border-olive bg-olive text-white" : "border-charcoal/20 bg-white"
-                }`}
-                aria-hidden="true"
-              >
-                {selectedProductIds.includes(product.id) ? <CheckCircle2 size={18} /> : null}
+                <span className="shrink-0 rounded-xl bg-gold px-4 py-2 text-sm font-black text-charcoal">99 ريال</span>
               </span>
             </button>
-          ))}
-        </div>
+          </div>
+        ) : null}
 
         <div className="grid gap-3">
-          <Button onClick={() => onAccept(selectedProducts)} disabled={isSubmitting || selectedProducts.length === 0} variant="gold" className="mt-5 w-full text-[0px] [&>span]:text-sm">
+          <Button onClick={() => upsellProduct && onAccept([upsellProduct])} disabled={isSubmitting || !upsellProduct} variant="gold" className="w-full text-[0px] [&>span]:text-sm">
             <span className="text-sm text-charcoal">أضيفي العرض</span>
-            <span className="hidden">أضيفي {selectedProducts.length || ""} منتج للطلب - {upsellTotal || 0} ريال</span>
             أضيفي المنتج المختار بـ 99 ريال
           </Button>
           <Button onClick={onSkip} disabled={isSubmitting} variant="outline" className="w-full">
