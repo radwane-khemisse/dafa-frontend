@@ -33,6 +33,20 @@ const bricolageGrotesque = Bricolage_Grotesque({
 export const metadata: Metadata = {
   title: "مطبخ دفا | Dafa Kitchen",
   description: "بيت اختيار أدوات المطبخ العملية للبيت السعودي: تحضير أسرع، مؤونة أرتب، وحوض أنظف.",
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico?v=pro", sizes: "any" },
+      { url: "/favicon-16x16.png?v=pro", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png?v=pro", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-48x48.png?v=pro", sizes: "48x48", type: "image/png" },
+      { url: "/favicon-96x96.png?v=pro", sizes: "96x96", type: "image/png" },
+      { url: "/favicon-192x192.png?v=pro", sizes: "192x192", type: "image/png" },
+      { url: "/favicon-512x512.png?v=pro", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png?v=pro", sizes: "180x180", type: "image/png" }],
+    shortcut: ["/favicon.ico?v=pro"],
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

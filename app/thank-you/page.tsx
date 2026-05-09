@@ -14,25 +14,25 @@ export default async function ThankYouPage({
   return (
     <section className="bg-warm-50">
       <div className="container-shell py-10 md:py-14">
-        <div className="grid items-start gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="grid items-start gap-6 lg:grid-cols-[1fr_0.85fr]">
           <div className="rounded-2xl bg-olive p-6 text-white shadow-soft md:p-8">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/12 px-4 py-2 text-sm font-black">
               <CheckCircle2 size={18} /> تم استلام طلبك
             </div>
-            <h1 className="mt-5 text-4xl font-black leading-tight md:text-5xl">باقي خطوة واحدة عشان نجهز الشحنة</h1>
-            <p className="mt-4 max-w-xl text-lg font-bold leading-9 text-white/82">
-              طلبات الدفع عند الاستلام لا تنشحن إلا بعد مكالمة تأكيد قصيرة. جهزي الجوال، لأننا بنتصل عليك للتأكد من العنوان قبل تجهيز الطلب.
+            <h1 className="mt-5 text-4xl font-black leading-tight md:text-5xl">باقي مكالمة التأكيد ونبدأ تجهيز الشحنة</h1>
+            <p className="mt-4 max-w-2xl text-lg font-bold leading-9 text-white/82">
+              لأن الطلب بالدفع عند الاستلام، نحتاج نكلمك مكالمة قصيرة لتأكيد العنوان قبل الشحن. الرد على المكالمة هو أسرع طريقة لوصول طلبك بدون تأخير.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl bg-white/10 p-4">
                 <Clock3 size={22} className="mb-3 text-gold" />
-                <p className="font-black">الاتصال من 9 صباحا إلى 9 مساء</p>
+                <p className="font-black">من 9 صباحا إلى 9 مساء</p>
                 <p className="mt-1 text-sm leading-6 text-white/72">داخل أوقات العمل نحاول الاتصال خلال أقل من 10 دقائق.</p>
               </div>
               <div className="rounded-xl bg-white/10 p-4">
                 <ShieldCheck size={22} className="mb-3 text-gold" />
-                <p className="font-black">لا يوجد دفع الآن</p>
-                <p className="mt-1 text-sm leading-6 text-white/72">تدفعين عند الاستلام بعد ما يتم تأكيد الطلب والشحن.</p>
+                <p className="font-black">بدون دفع الآن</p>
+                <p className="mt-1 text-sm leading-6 text-white/72">الدفع يكون عند الاستلام بعد تأكيد الطلب وتجهيزه للشحن.</p>
               </div>
             </div>
           </div>
@@ -47,20 +47,12 @@ export default async function ThankYouPage({
               </div>
             ) : null}
             <div className="mt-4 rounded-xl border border-gold/35 bg-warm-50 p-4">
-              <p className="font-black text-date">مهم جدا للتأكيد</p>
+              <p className="font-black text-date">قد يظهر رقم غير محفوظ</p>
               <p className="mt-2 text-sm font-bold leading-7 text-charcoal/68">
-                ممكن يظهر لك رقم غير محفوظ باسم مطبخ دفا. ردي على المكالمة عشان نثبت العنوان ونرسل الطلب بدون تأخير.
+                المكالمة قد تأتي من رقم خدمة عملاء غير محفوظ باسم مطبخ دفا. الرد عليها يساعدنا نثبت العنوان ونرسل الطلب بسرعة.
               </p>
             </div>
-            <div className="mt-5 flex flex-wrap gap-3">
-              
-              <Link
-                className="focus-ring inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border border-charcoal/15 px-5 py-3 text-sm font-black"
-                href="/products"
-              >
-                تصفح المنتجات
-              </Link>
-            </div>
+            
           </div>
         </div>
 

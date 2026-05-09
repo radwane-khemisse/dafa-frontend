@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, ShoppingCart, X, CookingPot } from "lucide-react";
+import { Menu, ShoppingCart, X } from "lucide-react";
 import { useState } from "react";
 import { useCartStore } from "@/store/cart-store";
 
@@ -21,8 +21,8 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-charcoal/10 bg-warm-50/95 backdrop-blur">
       <div className="container-shell flex min-h-20 items-center justify-between gap-4 py-3">
         <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-olive text-gold">
-            <CookingPot size={26} />
+          <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-olive">
+            <img src="/brand-mark-light.png?v=pro" alt="" width={48} height={48} className="h-12 w-12 object-contain" />
           </span>
           <span>
             <span className="block text-xl font-black leading-6">مطبخ دفا</span>
