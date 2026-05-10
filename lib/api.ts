@@ -24,6 +24,8 @@ export async function createOrder(input: CreateOrderInput) {
       items: input.items.map((item) => ({
         product_id: item.productId,
         offer_id: item.offerId,
+        pack_id: item.packId,
+        pack_name: item.packName,
         quantity: item.quantity,
         unit_price: item.unitPrice,
         total_price: item.totalPrice,

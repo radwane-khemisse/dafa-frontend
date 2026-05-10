@@ -6,19 +6,14 @@ import type { Pack } from "@/data/packs";
 import { getPackProducts } from "@/data/packs";
 import { createEventId } from "@/lib/event-id";
 import { trackEvent } from "@/lib/tracking";
-import { makeCartItem, useCartStore } from "@/store/cart-store";
+import { makePackCartItems, useCartStore } from "@/store/cart-store";
 
 export function AddPackButton({ pack, className = "" }: { pack: Pack; className?: string }) {
   const addItems = useCartStore((state) => state.addItems);
   const products = getPackProducts(pack);
 
   function handleAddPack() {
-    const items = products.map((product) => ({
-      ...makeCartItem(product, pack.offerId),
-      titleAr: `${product.nameAr} - ضمن ${pack.nameAr}`,
-      packId: pack.id,
-      packName: pack.nameAr,
-    }));
+    const items = makePackCartItems(pack, products);
     addItems(items);
 
     trackEvent("AddToCart", {

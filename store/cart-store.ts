@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getProductById, type OfferId, type Product } from "@/data/products";
+import type { Pack } from "@/data/packs";
 
 export type CartItem = {
   productId: Product["id"];
@@ -102,10 +103,36 @@ export function makeCartItem(product: Product, offerId: OfferId): CartItem {
     productId: product.id,
     offerId,
     quantity: offer.quantity,
-    unitPrice: Math.round(offer.price / offer.quantity),
+    unitPrice: calculateUnitPrice(offer.price, offer.quantity),
     totalPrice: offer.price,
     titleAr: product.nameAr,
   };
+}
+
+export function makePackCartItems(pack: Pack, products: Product[]): CartItem[] {
+  const lineTotals = splitTotal(pack.price, products.length);
+
+  return products.map((product, index) => ({
+    productId: product.id,
+    offerId: pack.offerId,
+    quantity: 1,
+    unitPrice: lineTotals[index],
+    totalPrice: lineTotals[index],
+    titleAr: `${product.nameAr} - ضمن ${pack.nameAr}`,
+    packId: pack.id,
+    packName: pack.nameAr,
+  }));
+}
+
+function calculateUnitPrice(totalPrice: number, quantity: number) {
+  return Number((totalPrice / quantity).toFixed(2));
+}
+
+function splitTotal(total: number, count: number) {
+  if (count <= 0) return [];
+  const base = Math.floor(total / count);
+  const remainder = total - base * count;
+  return Array.from({ length: count }, (_, index) => base + (index < remainder ? 1 : 0));
 }
 
 export function getCartProductIds(items: CartItem[]) {
