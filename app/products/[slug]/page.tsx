@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Award, Banknote, CheckCircle2, PackageCheck, Settings2, Star, Truck } from "lucide-react";
+import { Award, Banknote, CheckCircle2, PackageCheck, Settings2, Star, Timer, Truck } from "lucide-react";
 import { OfferSelector } from "@/components/product/offer-selector";
 import { ProductCard } from "@/components/product/product-card";
 import { ReviewCard } from "@/components/product/review-card";
@@ -12,11 +12,27 @@ export function generateStaticParams() {
   return products.map((product) => ({ slug: product.slug }));
 }
 
+const shippingPaymentFaq = [
+  {
+    question: "هل الدفع عند الاستلام؟",
+    answer: "نعم، كل طلبات مطبخ دفا داخل السعودية بالدفع عند الاستلام. نؤكد الطلب معك قبل الشحن حتى تكون البيانات والكمية واضحة.",
+  },
+  {
+    question: "هل الشحن مجاني؟",
+    answer: "نعم، عرض الشحن المجاني متاح حاليا خلال آخر ٤٨ ساعة من العرض، ويظهر مع طلبات المنتجات المؤكدة قبل الشحن.",
+  },
+  {
+    question: "متى يبدأ تجهيز الطلب؟",
+    answer: "بعد إرسال الطلب، نتواصل معك لتأكيد الاسم والمدينة والعنوان والكمية. بعد التأكيد يبدأ تجهيز الشحنة حسب تغطية شركة الشحن.",
+  },
+];
+
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const product = getProductBySlug(slug);
   if (!product) notFound();
   const crossSells = getCrossSells([product.id]);
+  const productFaq = product.faq.filter((item) => !item.question.includes("الدفع"));
 
   return (
     <>
@@ -28,6 +44,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {product.role}
             </p>
             <h1 className="text-4xl font-black leading-tight md:text-5xl">{product.nameAr}</h1>
+            <p className="mt-4 max-w-2xl text-base font-bold leading-8 text-charcoal/70 md:text-lg">
+              {product.subheadingAr}
+            </p>
+            
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-1 text-gold">
                 {Array.from({ length: 5 }).map((_, index) => (
@@ -40,6 +60,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-charcoal/65 shadow-soft">
                 {product.ratingCount.toLocaleString("ar-SA")} تقييم
               </span>
+            </div>
+            <div className="mt-4 inline-flex max-w-fit items-center gap-2 rounded-xl border border-red-700/20 bg-red-50 px-3 py-2 text-xs font-black text-red-800 shadow-soft md:text-sm">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-red-700 text-white">
+                <Timer size={17} />
+              </span>
+              <span>آخر ٤٨ ساعة على عرض الشحن المجاني</span>
             </div>
             <div id="product-offer" className="mt-6 scroll-mt-28">
               <OfferSelector product={product} />
@@ -179,18 +205,30 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
         <div>
           <h2 className="text-3xl font-black">أسئلة مهمة قبل الطلب</h2>
-          <div className="mt-6 grid gap-3">
-            {product.faq.map((item) => (
-              <details key={item.question} className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-soft">
-                <summary className="cursor-pointer font-black">{item.question}</summary>
-                <p className="mt-3 leading-7 text-charcoal/70">{item.answer}</p>
-              </details>
-            ))}
+          <div className="mt-6 grid gap-6">
+            <FaqGroup title="عن المنتج" items={productFaq} />
+            <FaqGroup title="الشحن والدفع" items={shippingPaymentFaq} />
           </div>
         </div>
       </section>
 
       <StickyProductCta product={product} />
     </>
+  );
+}
+
+function FaqGroup({ title, items }: { title: string; items: { question: string; answer: string }[] }) {
+  return (
+    <div className="rounded-3xl border border-charcoal/10 bg-white p-4 shadow-soft">
+      <h3 className="mb-3 rounded-2xl bg-warm-50 px-4 py-3 text-lg font-black text-date">{title}</h3>
+      <div className="grid gap-3">
+        {items.map((item) => (
+          <details key={item.question} className="rounded-2xl border border-charcoal/10 bg-white p-5">
+            <summary className="cursor-pointer font-black">{item.question}</summary>
+            <p className="mt-3 leading-7 text-charcoal/70">{item.answer}</p>
+          </details>
+        ))}
+      </div>
+    </div>
   );
 }

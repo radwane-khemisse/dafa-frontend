@@ -1,6 +1,6 @@
 "use client";
 
-import { Award, Check, ShoppingCart } from "lucide-react";
+import { Check, ShieldCheck, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import type { OfferId, Product } from "@/data/products";
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,14 @@ export function OfferSelector({ product, compact = false }: { product: Product; 
               }`}
             >
               {candidate.badge ? (
-                <span className="absolute -top-3 right-5 rounded-full border border-gold bg-white px-3 py-1 text-[11px] font-black text-date shadow-soft">
+                <span
+                  className={`absolute -top-4 right-5 inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-[11px] font-black shadow-soft ${
+                    candidate.id === "three"
+                      ? "border-discount/25 bg-discount text-white"
+                      : "border-gold/40 bg-gold text-charcoal"
+                  }`}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
                   {candidate.badge}
                 </span>
               ) : null}
@@ -97,10 +104,7 @@ export function OfferSelector({ product, compact = false }: { product: Product; 
         <ShoppingCart size={18} />
         أضيفي للسلة - {offer.price} ريال
       </Button>
-      <div className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gold/40 bg-[#FFF7E4] px-4 py-3 text-center text-xs font-black text-date">
-        <Award size={18} className="text-gold" />
-        ضمان ذهبي 30 يوم
-      </div>
+      
     </div>
   );
 }

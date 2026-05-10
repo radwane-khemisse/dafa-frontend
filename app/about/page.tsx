@@ -1,24 +1,80 @@
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Home, PackageCheck, PhoneCall, Sparkles } from "lucide-react";
 
 export default function AboutPage() {
+  const standards = [
+    {
+      icon: ClipboardCheck,
+      title: "نختار المشكلة قبل المنتج",
+      text: "كل أداة لازم تحل تعب يومي واضح: تحضير أسرع، تخزين أرتب، أو حوض أنظف بعد الغسيل.",
+    },
+    {
+      icon: Home,
+      title: "نشرح الفائدة بلغة البيت",
+      text: "بدون مبالغة أو وعود كبيرة. نوضح لك أين يفيدك المنتج وكيف يدخل في روتين المطبخ.",
+    },
+    {
+      icon: PhoneCall,
+      title: "نؤكد الطلب قبل الشحن",
+      text: "لأن الدفع عند الاستلام يحتاج طلب جاد وبيانات واضحة، نراجع التفاصيل قبل تجهيز الشحنة.",
+    },
+  ];
+
   return (
-    <section className="container-shell py-14">
-      <div className="mx-auto max-w-3xl text-center">
-        <p className="text-sm font-black text-date">من نحن</p>
-        <h1 className="mt-3 text-4xl font-black">مطبخ دفا يختار الأدوات اللي فعلا تنفع البيت السعودي</h1>
-        <p className="mt-5 leading-9 text-charcoal/70">
-          مطبخ دفا مو متجر أدوات عشوائية. هو بيت اختيار لأدوات المطبخ اليومية: نبحث عن المشكلة، نشوف هل المنتج مفهوم وعملي، ثم نقدمه بطريقة واضحة تناسب قرار الشراء بالدفع عند الاستلام.
-          نركز على البيت السعودي: تحضير أسرع، دولاب مؤونة أرتب، وحوض أنظف بعد الغسيل.
-        </p>
-      </div>
-      <div className="mt-10 grid gap-4 md:grid-cols-3">
-        {["نختار المشكلة قبل المنتج", "نشرح الفائدة بلغة البيت", "نؤكد الطلب باتصال قبل الشحن"].map((item) => (
-          <div key={item} className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-soft">
-            <CheckCircle2 className="mb-4 text-olive" />
-            <h2 className="text-xl font-black">{item}</h2>
+    <main className="bg-warm-50">
+      <section className="bg-olive py-14 text-white">
+        <div className="container-shell grid items-center gap-8 md:grid-cols-[1fr_0.85fr]">
+          <div>
+            <p className="text-sm font-black text-gold">من نحن</p>
+            <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight md:text-5xl">
+              مطبخ دفا بيت اختيار أدوات المطبخ العملية للبيت السعودي
+            </h1>
+            <p className="mt-5 max-w-2xl font-bold leading-8 text-white/76">
+              ما نبيع أدوات عشوائية أو منتجات ترند عابرة. نختار أدوات تفهمين فائدتها من أول نظرة، وتبقى مفيدة بعد الحماس الأول: سطح أرتب، تحضير أسرع، ومطبخ أهدأ.
+            </p>
           </div>
+          <div className="rounded-3xl border border-white/12 bg-white/8 p-5">
+            <div className="rounded-2xl bg-warm-50 p-5 text-charcoal">
+              <Sparkles className="text-gold" size={32} />
+              <h2 className="mt-4 text-2xl font-black">معيار دفا</h2>
+              <div className="mt-4 grid gap-3 text-sm font-bold leading-7 text-charcoal/68">
+                {["يحل مشكلة يومية واضحة", "سهل الفهم قبل الشراء", "عملي للدفع عند الاستلام"].map((item) => (
+                  <p key={item} className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-1 shrink-0 text-olive" size={17} />
+                    {item}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="container-shell -mt-8 grid gap-4 pb-14 md:grid-cols-3">
+        {standards.map(({ icon: Icon, title, text }) => (
+          <article key={title} className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-soft">
+            <span className="grid h-12 w-12 place-items-center rounded-xl bg-warm-100 text-olive">
+              <Icon size={22} />
+            </span>
+            <h2 className="mt-5 text-xl font-black">{title}</h2>
+            <p className="mt-3 text-sm font-bold leading-7 text-charcoal/64">{text}</p>
+          </article>
         ))}
-      </div>
-    </section>
+      </section>
+
+      <section className="container-shell pb-14">
+        <div className="grid gap-5 rounded-3xl bg-date p-6 text-white shadow-soft md:grid-cols-[auto_1fr] md:items-center md:p-8">
+          <span className="grid h-16 w-16 place-items-center rounded-2xl bg-gold text-charcoal">
+            <PackageCheck size={30} />
+          </span>
+          <div>
+            <p className="text-sm font-black text-gold">وعدنا البسيط</p>
+            <h2 className="mt-1 text-2xl font-black">نساعدك تختارين أداة عملية، مو قطعة تزيد الزحمة</h2>
+            <p className="mt-2 max-w-3xl text-sm font-bold leading-7 text-white/72">
+              لذلك تلاحظين في مطبخ دفا لغة واضحة، منتجات قليلة ومنتقاة، وتأكيد قبل الشحن حتى يكون الطلب مفهوم ومناسب لك.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }

@@ -441,8 +441,8 @@ function UpsellModal({
       <div className="w-full max-w-xl rounded-3xl bg-white p-5 shadow-soft">
         <div className="text-center">
           <p className="text-sm font-black text-gold">عرض خاص قبل تأكيد الطلب</p>
-          <h2 className="mt-2 text-2xl font-black">اختاري منتج مكمل بـ 99 ريال فقط</h2>
-          <p className="mt-3 text-sm leading-7 text-charcoal/65">أضيفيه مع نفس الشحنة وبدون طلب جديد. العرض يظهر مرة واحدة فقط.</p>
+          <h2 className="mt-2 text-2xl font-black">أضيفي منتجا مكملا بـ 99 ريال</h2>
+          <p className="mt-3 text-sm leading-7 text-charcoal/65">نضيفه لنفس الطلب ونؤكده معك في نفس المكالمة.</p>
         </div>
 
         <div className="mt-5 rounded-2xl bg-warm-50 p-3">
@@ -467,7 +467,7 @@ function UpsellModal({
               <span className="flex min-w-0 items-center justify-between gap-3">
                 <span className="min-w-0">
                   <span className="block font-black">{upsellProduct.nameAr}</span>
-                  <span className="mt-1 block text-sm font-black text-date">عرض خاص مع نفس الشحنة بـ 99 ريال فقط</span>
+                  <span className="mt-1 block text-sm font-black text-date">ينضاف لنفس الطلب بـ 99 ريال</span>
                 </span>
                 <span className="shrink-0 rounded-xl bg-gold px-4 py-2 text-sm font-black text-charcoal">99 ريال</span>
               </span>
@@ -476,9 +476,8 @@ function UpsellModal({
         ) : null}
 
         <div className="grid gap-3">
-          <Button onClick={() => upsellProduct && onAccept([upsellProduct])} disabled={isSubmitting || !upsellProduct} variant="gold" className="w-full text-[0px] [&>span]:text-sm">
-            <span className="text-sm text-charcoal">أضيفي العرض</span>
-            أضيفي المنتج المختار بـ 99 ريال
+          <Button onClick={() => upsellProduct && onAccept([upsellProduct])} disabled={isSubmitting || !upsellProduct} variant="gold" className="w-full">
+            أضيفيه للطلب بـ 99 ريال
           </Button>
           <Button onClick={onSkip} disabled={isSubmitting} variant="outline" className="w-full">
             متابعة بدون العرض

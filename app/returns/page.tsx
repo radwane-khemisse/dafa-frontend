@@ -1,15 +1,40 @@
+import { Camera, Mail, PackageSearch, RotateCcw } from "lucide-react";
+import { PolicyPage } from "@/components/policy/policy-page";
+
 export default function ReturnsPage() {
   return (
-    <section className="container-shell py-14">
-      <div className="mx-auto max-w-3xl rounded-2xl bg-white p-8 shadow-soft">
-        <h1 className="text-4xl font-black">سياسة الاستبدال والاسترجاع</h1>
-        <div className="mt-6 grid gap-4 leading-8 text-charcoal/70">
-          <p>نوفر استبدال المنتج عند وجود عيب مصنعي أو تلف واضح عند الاستلام.</p>
-          <p>يرجى التواصل معنا خلال 24 ساعة من الاستلام مع صورة واضحة للمنتج والطلب.</p>
-          <p>بسبب نموذج الدفع عند الاستلام، نؤكد الطلب قبل الشحن لتقليل الإلغاء والتأخير.</p>
-        </div>
-      </div>
-    </section>
+    <PolicyPage
+      eyebrow="الاستبدال والاسترجاع"
+      title="نراجع المشكلة بصورة واضحة ونساعدك بخطوة مرتبة"
+      intro="اختيارات دفا عملية وواضحة، ومع ذلك إذا وصلك المنتج بتلف ظاهر أو عيب مصنعي نراجع الحالة بهدوء ونوضح لك الإجراء المناسب."
+      items={[
+        {
+          icon: PackageSearch,
+          title: "متى نقبل المراجعة؟",
+          text: "نوفر استبدال المنتج عند وجود عيب مصنعي أو تلف واضح عند الاستلام، بعد مراجعة الصور وبيانات الطلب.",
+        },
+        {
+          icon: Camera,
+          title: "أرسلي الصور خلال 24 ساعة",
+          text: "يرجى إرسال صورة واضحة للمنتج، صورة للطلب أو الفاتورة، ووصف قصير للمشكلة خلال 24 ساعة من الاستلام.",
+        },
+        {
+          icon: Mail,
+          title: "إرسال الصور",
+          text: "ترسل الصور وبيانات الطلب إلى البريد support@dafakitchen.shop حتى يراجعها فريق الدعم في مكان واحد.",
+        },
+        {
+          icon: RotateCcw,
+          title: "إجراء مناسب للحالة",
+          text: "بعد المراجعة نوضح لك هل الحالة مناسبة للاستبدال أو تحتاج معلومات إضافية، حسب حالة المنتج وسياسة الدفع عند الاستلام.",
+        },
+      ]}
+      noteTitle="أين أرسل الصور؟"
+      noteText="للاستبدال أو مراجعة التلف، أرسلي الصور ورقم الطلب إلى support@dafakitchen.shop خلال 24 ساعة من الاستلام."
+      noteAction={{
+        href: "mailto:support@dafakitchen.shop",
+        label: "إرسال الصور بالبريد",
+      }}
+    />
   );
 }
-

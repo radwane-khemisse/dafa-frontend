@@ -183,20 +183,24 @@ export function ThankYouSummary({ fallbackOrderId, fallbackTotal }: { fallbackOr
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[0.75fr_1.25fr]">
-        <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-soft md:p-6">
+      <section className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-soft md:p-6">
+        <div className="grid gap-5 md:grid-cols-[auto_1fr] md:items-start">
           <ShieldCheck className="text-olive" size={30} />
-          <h2 className="mt-4 text-2xl font-black">لماذا نؤكد الطلب؟</h2>
-          <p className="mt-3 text-sm font-bold leading-7 text-charcoal/65">
-            التأكيد يحميك من عنوان ناقص أو شحنة غير مقصودة، ويساعدنا نرسل الطلب الجاد بسرعة ونحافظ على تجربة دفع عند الاستلام مرتبة.
-          </p>
-          <div className="mt-5 grid gap-2 text-sm font-black text-date">
-            <p>+ الدفع عند الاستلام</p>
-            <p>+ اتصال تأكيد قبل الشحن</p>
-            <p>+ ضمان ذهبي 30 يوم</p>
+          <div>
+            <h2 className="text-2xl font-black">لماذا نؤكد الطلب؟</h2>
+            <p className="mt-3 text-sm font-bold leading-7 text-charcoal/65">
+              التأكيد يحميك من عنوان ناقص أو شحنة غير مقصودة، ويساعدنا نرسل الطلب الجاد بسرعة ونحافظ على تجربة دفع عند الاستلام مرتبة.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2 text-sm font-black text-date">
+              <p className="rounded-full bg-warm-50 px-3 py-1">الدفع عند الاستلام</p>
+              <p className="rounded-full bg-warm-50 px-3 py-1">اتصال تأكيد قبل الشحن</p>
+              <p className="rounded-full bg-warm-50 px-3 py-1">ضمان ذهبي 30 يوم</p>
+            </div>
           </div>
         </div>
+      </section>
 
+      <section className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-soft md:p-6">
         <div>
           <p className="text-sm font-black text-olive">كملي تجهيز مطبخك</p>
           <h2 className="mt-1 text-2xl font-black">منتجات تناسب طلبك</h2>

@@ -49,7 +49,26 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="container-shell py-16">
+     
+
+      <section className="bg-white py-16">
+        <div className="container-shell">
+          <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+          <p className="text-sm font-black text-date">اختيارات دفا</p>
+          <h2 className="mt-2 text-3xl font-black">أدوات مختارة بعقلية مطبخ، مو بعقلية ترند</h2>
+            </div>
+            <ButtonLink href="/products" variant="outline">عرض كل المنتجات</ButtonLink>
+          </div>
+          <div className="grid gap-5 lg:grid-cols-3">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+       <section className="container-shell py-16">
         <div className="mb-8 text-center">
           <p className="text-sm font-black text-olive">معيار مطبخ دفا</p>
           <h2 className="mt-2 text-3xl font-black">نختار المنتج إذا كانت فائدته واضحة قبل ما يوصلك</h2>
@@ -66,23 +85,6 @@ export default function HomePage() {
               <p className="mt-3 text-sm leading-7 text-charcoal/65">{body}</p>
             </div>
           ))}
-        </div>
-      </section>
-
-      <section className="bg-white py-16">
-        <div className="container-shell">
-          <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div>
-          <p className="text-sm font-black text-date">اختيارات دفا</p>
-          <h2 className="mt-2 text-3xl font-black">أدوات مختارة بعقلية مطبخ، مو بعقلية ترند</h2>
-            </div>
-            <ButtonLink href="/products" variant="outline">عرض كل المنتجات</ButtonLink>
-          </div>
-          <div className="grid gap-5 lg:grid-cols-3">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
         </div>
       </section>
 
