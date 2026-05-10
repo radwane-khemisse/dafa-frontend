@@ -1,8 +1,10 @@
 import { ArrowLeft, Banknote, CheckCircle2, ClipboardCheck, PhoneCall, Ruler, ShieldCheck, Sparkles, Wrench } from "lucide-react";
+import { PackCard } from "@/components/pack/pack-card";
 import { ProductCard } from "@/components/product/product-card";
 import { ReviewCard } from "@/components/product/review-card";
 import { ButtonLink } from "@/components/ui/button";
 import { KitchenHeroVisual } from "@/components/ui/product-visual";
+import { packs } from "@/data/packs";
 import { products } from "@/data/products";
 
 export default function HomePage() {
@@ -65,6 +67,24 @@ export default function HomePage() {
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="container-shell py-16">
+        <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <p className="text-sm font-black text-olive">باقات دفا</p>
+            <h2 className="mt-2 max-w-3xl text-3xl font-black">ارفعي قيمة الطلب بمنتجات تكمل بعض، مو بكميات مكررة</h2>
+            <p className="mt-3 max-w-2xl text-sm font-bold leading-7 text-charcoal/62">
+              اخترنا باقات من منتجين يخدمون نفس روتين المطبخ، عشان يكون العرض منطقي ومفيد بعد الاستلام.
+            </p>
+          </div>
+          <ButtonLink href="/packs" variant="outline">عرض كل الباقات</ButtonLink>
+        </div>
+        <div className="grid gap-5 xl:grid-cols-2">
+          {packs.map((pack) => (
+            <PackCard key={pack.id} pack={pack} />
+          ))}
         </div>
       </section>
 

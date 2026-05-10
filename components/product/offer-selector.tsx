@@ -9,9 +9,10 @@ import { createEventId } from "@/lib/event-id";
 import { trackEvent } from "@/lib/tracking";
 
 export function OfferSelector({ product, compact = false }: { product: Product; compact?: boolean }) {
-  const [selectedOffer, setSelectedOffer] = useState<OfferId>("two");
+  const defaultOffer = product.offers.find((candidate) => candidate.badge) ?? product.offers[0];
+  const [selectedOffer, setSelectedOffer] = useState<OfferId>(defaultOffer.id);
   const addItem = useCartStore((state) => state.addItem);
-  const offer = product.offers.find((candidate) => candidate.id === selectedOffer) ?? product.offers[0];
+  const offer = product.offers.find((candidate) => candidate.id === selectedOffer) ?? defaultOffer;
   const singleItemPrice = product.offers.find((candidate) => candidate.id === "one")?.price ?? product.offers[0].price;
 
   function handleAdd() {

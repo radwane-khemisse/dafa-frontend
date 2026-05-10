@@ -1,4 +1,4 @@
-export type OfferId = "one" | "two" | "three" | "upsell_99";
+export type OfferId = "one" | "two" | "three" | "pack_pair" | "upsell_99";
 
 export type Offer = {
   id: OfferId;
@@ -32,6 +32,10 @@ export type Product = {
 export const standardOffers: Offer[] = [
   { id: "one", labelAr: "قطعة واحدة", quantity: 1, price: 199 },
   { id: "two", labelAr: "قطعتين", quantity: 2, price: 279, badge: "الأكثر طلبا" },
+];
+
+export const volumeOffers: Offer[] = [
+  ...standardOffers,
   { id: "three", labelAr: "3 قطع", quantity: 3, price: 349, badge: "أفضل توفير" },
 ];
 

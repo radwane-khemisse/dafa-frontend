@@ -11,9 +11,10 @@ import { trackEvent } from "@/lib/tracking";
 
 export function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem);
+  const defaultOffer = product.offers.find((offer) => offer.badge) ?? product.offers[0];
 
   function addDefaultOffer() {
-    const item = makeCartItem(product, "two");
+    const item = makeCartItem(product, defaultOffer.id);
     addItem(item);
     trackEvent("AddToCart", {
       eventId: createEventId("atc"),

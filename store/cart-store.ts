@@ -57,6 +57,8 @@ export function makeCartItem(product: Product, offerId: OfferId): CartItem {
   const offer =
     offerId === "upsell_99"
       ? { id: "upsell_99" as const, quantity: 1, price: 99, labelAr: "عرض خاص" }
+      : offerId === "pack_pair"
+        ? { id: "pack_pair" as const, quantity: 1, price: 159, labelAr: "ضمن باقة" }
       : product.offers.find((candidate) => candidate.id === offerId);
 
   if (!offer) {

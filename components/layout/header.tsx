@@ -8,6 +8,7 @@ import { useCartStore } from "@/store/cart-store";
 const links = [
   { href: "/", label: "الرئيسية" },
   { href: "/products", label: "المنتجات" },
+  { href: "/packs", label: "الباقات" },
   { href: "/about", label: "من نحن" },
   { href: "/contact", label: "تواصل معنا" },
 ];
