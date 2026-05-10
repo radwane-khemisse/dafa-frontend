@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import { ArrowLeft, Banknote, CheckCircle2, PackageCheck, PhoneCall, Sparkles, Truck } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { AddPackButton } from "@/components/pack/pack-actions";
 import { ProductCard } from "@/components/product/product-card";
-import { ProductVisual } from "@/components/ui/product-visual";
+import { packImages } from "@/components/ui/product-visual";
 import { getPackBySlug, getPackProducts, packs } from "@/data/packs";
 
 export function generateStaticParams() {
@@ -36,12 +37,15 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
               ))}
             </div>
           </div>
-          <div className="rounded-3xl border border-white/12 bg-white/8 p-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {products.map((product) => (
-                <ProductVisual key={product.id} product={product} ratio="square" className="rounded-2xl shadow-none" />
-              ))}
-            </div>
+          <div className="relative aspect-[8/5] overflow-hidden rounded-3xl border border-white/12 bg-white/8 shadow-soft">
+            <Image
+              src={packImages[pack.id]}
+              alt={pack.nameAr}
+              fill
+              priority
+              sizes="(min-width: 1024px) 560px, 100vw"
+              className="object-cover"
+            />
           </div>
         </div>
       </section>

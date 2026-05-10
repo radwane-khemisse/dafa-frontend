@@ -1,21 +1,21 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { AddPackButton } from "@/components/pack/pack-actions";
-import { ProductVisual } from "@/components/ui/product-visual";
+import { packImages } from "@/components/ui/product-visual";
 import type { Pack } from "@/data/packs";
-import { getPackProducts } from "@/data/packs";
 
 export function PackCard({ pack }: { pack: Pack }) {
-  const products = getPackProducts(pack);
-
   return (
     <article className="overflow-hidden rounded-3xl border border-charcoal/10 bg-white shadow-soft">
-      <Link href={`/packs/${pack.slug}`} className="block bg-warm-50 p-4">
-        <div className="grid gap-3 sm:grid-cols-2">
-          {products.map((product) => (
-            <ProductVisual key={product.id} product={product} compact className="min-h-32 rounded-xl shadow-none" />
-          ))}
-        </div>
+      <Link href={`/packs/${pack.slug}`} className="relative block aspect-[8/5] bg-warm-50">
+        <Image
+          src={packImages[pack.id]}
+          alt={pack.nameAr}
+          fill
+          sizes="(min-width: 1280px) 560px, (min-width: 768px) 50vw, 100vw"
+          className="object-cover"
+        />
       </Link>
       <div className="p-5">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

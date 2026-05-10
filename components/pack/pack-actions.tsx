@@ -9,15 +9,17 @@ import { trackEvent } from "@/lib/tracking";
 import { makeCartItem, useCartStore } from "@/store/cart-store";
 
 export function AddPackButton({ pack, className = "" }: { pack: Pack; className?: string }) {
-  const addItem = useCartStore((state) => state.addItem);
+  const addItems = useCartStore((state) => state.addItems);
   const products = getPackProducts(pack);
 
   function handleAddPack() {
     const items = products.map((product) => ({
       ...makeCartItem(product, pack.offerId),
       titleAr: `${product.nameAr} - ضمن ${pack.nameAr}`,
+      packId: pack.id,
+      packName: pack.nameAr,
     }));
-    items.forEach(addItem);
+    addItems(items);
 
     trackEvent("AddToCart", {
       eventId: createEventId("pack_atc"),

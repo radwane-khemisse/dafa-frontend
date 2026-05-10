@@ -22,15 +22,54 @@ const checkoutSchema = z.object({
 
 type CheckoutValues = z.infer<typeof checkoutSchema>;
 
+type CartDisplayGroup = {
+  id: string;
+  title: string;
+  totalPrice: number;
+  items: CartItem[];
+  packId?: string;
+};
+
+function getCartDisplayGroups(items: CartItem[]): CartDisplayGroup[] {
+  const groups: CartDisplayGroup[] = [];
+  const seenPackIds = new Set<string>();
+
+  items.forEach((item) => {
+    if (!item.packId) {
+      groups.push({
+        id: `${item.productId}-${item.offerId}`,
+        title: item.titleAr,
+        totalPrice: item.totalPrice,
+        items: [item],
+      });
+      return;
+    }
+
+    if (seenPackIds.has(item.packId)) return;
+    seenPackIds.add(item.packId);
+    const packItems = items.filter((candidate) => candidate.packId === item.packId);
+    groups.push({
+      id: item.packId,
+      title: item.packName ?? "باقة مطبخ دفا",
+      totalPrice: packItems.reduce((sum, candidate) => sum + candidate.totalPrice, 0),
+      items: packItems,
+      packId: item.packId,
+    });
+  });
+
+  return groups;
+}
+
 export function CartDrawer() {
   const router = useRouter();
-  const { items, isCartOpen, closeCart, removeItem, addItem, clearCart } = useCartStore();
+  const { items, isCartOpen, closeCart, removeItem, removePack, addItem, clearCart } = useCartStore();
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
   const [pendingCustomer, setPendingCustomer] = useState<CheckoutValues | null>(null);
   const [pendingEventId, setPendingEventId] = useState("");
   const [isUpsellOpen, setUpsellOpen] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
   const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
+  const cartGroups = getCartDisplayGroups(items);
   const productIds = items.map((item) => item.productId);
   const crossSells = getCrossSells(productIds);
   const upsellOptions = useMemo(() => getCrossSells(productIds).slice(0, 1), [productIds]);
@@ -166,32 +205,44 @@ export function CartDrawer() {
             </div>
           ) : (
             <div className="grid gap-3">
-              {items.map((item) => (
-                <div key={`${item.productId}-${item.offerId}`} className="rounded-2xl bg-white p-4">
+              {cartGroups.map((group) => {
+                const previewProduct = getProductById(group.items[0].productId);
+
+                return (
+                <div key={group.id} className="rounded-2xl bg-white p-4">
                   <div className="flex items-start justify-between gap-3">
-                    {getProductById(item.productId) ? (
+                    {!group.packId && previewProduct ? (
                       <ProductVisual
-                        product={getProductById(item.productId)!}
+                        product={previewProduct}
                         compact
                         className="w-24 shrink-0 rounded-xl shadow-none"
                       />
                     ) : null}
                     <div className="min-w-0 flex-1">
-                      <p className="font-black">{item.titleAr}</p>
-                      <p className="text-sm text-charcoal/60">الكمية: {item.quantity}</p>
+                      <p className="font-black">{group.title}</p>
+                      {group.packId ? (
+                        <div className="mt-2 grid gap-1">
+                          {group.items.map((item) => (
+                            <p key={`${item.productId}-${item.offerId}`} className="text-xs font-bold leading-5 text-charcoal/55">
+                              {item.titleAr.replace(` - ضمن ${group.title}`, "")}
+                            </p>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                     <button
                       type="button"
                       className="focus-ring rounded-lg p-2 text-red-700 hover:bg-red-50"
-                      onClick={() => removeItem(item.productId, item.offerId)}
-                      aria-label="حذف المنتج"
+                      onClick={() => (group.packId ? removePack(group.packId) : removeItem(group.items[0].productId, group.items[0].offerId))}
+                      aria-label={group.packId ? "حذف الباقة" : "حذف المنتج"}
                     >
                       <Trash2 size={18} />
                     </button>
                   </div>
-                  <p className="mt-3 text-lg font-black">{item.totalPrice} ريال</p>
+                  <p className="mt-3 text-lg font-black">{group.totalPrice} ريال</p>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -234,7 +285,7 @@ export function CartDrawer() {
 
       {isCheckoutOpen ? (
         <CheckoutModal
-          items={items}
+          groups={cartGroups}
           total={total}
           isSubmitting={isSubmitting}
           onClose={() => setCheckoutOpen(false)}
@@ -299,13 +350,13 @@ export function CartDrawer() {
 }
 
 function CheckoutModal({
-  items,
+  groups,
   total,
   isSubmitting,
   onClose,
   onSubmit,
 }: {
-  items: CartItem[];
+  groups: CartDisplayGroup[];
   total: number;
   isSubmitting: boolean;
   onClose: () => void;
@@ -333,17 +384,16 @@ function CheckoutModal({
           <div className="mb-4 border-b border-charcoal/10 pb-4">
             <p className="mb-3 text-sm font-black">المنتجات في طلبك</p>
             <div className="grid gap-2">
-              {items.map((item) => (
+              {groups.map((group) => (
                 <div
-                  key={`${item.productId}-${item.offerId}`}
+                  key={group.id}
                   className="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 text-sm"
                 >
-                  <span className="font-bold">{item.titleAr}</span>
+                  <span className="font-bold">{group.title}</span>
                   <span className="flex shrink-0 items-center gap-3 text-xs font-black text-charcoal/60">
-                    <span>x{item.quantity}</span>
-                    <span className="text-sm text-charcoal">{item.totalPrice} ريال</span>
+                    <span>{group.packId ? "باقة" : `x${group.items[0].quantity}`}</span>
+                    <span className="text-sm text-charcoal">{group.totalPrice} ريال</span>
                     <span className="hidden">
-                    x{item.quantity} - {item.totalPrice} ريال
                     </span>
                   </span>
                 </div>

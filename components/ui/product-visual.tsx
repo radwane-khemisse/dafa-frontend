@@ -1,9 +1,32 @@
+import Image from "next/image";
 import type { Product } from "@/data/products";
 
-const imageDescriptions = {
-  dish_drying_rack: "[صورة منظم تجفيف الصحون المعدني القابل للتعديل فوق الحوض مع صحون وأكواب مرتبة والماء ينزل داخل الحوض]",
-  rice_dispenser: "[صورة حافظة أرز وحبوب دوارة محكمة داخل دولاب مطبخ مرتب مع كوب قياس]",
-  vegetable_cutter: "[صورة قطاعة خضار 14 في 1 مع الحافظة أثناء تحضير السلطة والكشنة]",
+export type ProductImageVariant = "card" | "hero" | "usage" | "benefits";
+
+const productImages: Record<Product["id"], Record<ProductImageVariant, string>> = {
+  dish_drying_rack: {
+    card: "/product-images/expandable-dish-rack-product-card.webp",
+    hero: "/product-images/expandable-dish-rack-hero.webp",
+    usage: "/product-images/expandable-dish-usage.webp",
+    benefits: "/product-images/expandable-dish-rack-benefits.webp",
+  },
+  rice_dispenser: {
+    card: "/product-images/rice-dispenser-product-card.webp",
+    hero: "/product-images/rice-dispenser-hero.webp",
+    usage: "/product-images/rice-dispenser-usage.webp",
+    benefits: "/product-images/rice-dispenser-benefits.webp",
+  },
+  vegetable_cutter: {
+    card: "/product-images/vegetabales-cutter-product-card.webp",
+    hero: "/product-images/vegetabales-cutter-hero-section.webp",
+    usage: "/product-images/vegetables-cutter-usage-section.webp",
+    benefits: "/product-images/vegetable-cutter-benefits.webp",
+  },
+};
+
+export const packImages: Record<string, string> = {
+  "prep-and-storage-pack": "/product-images/pack-prep-storage.webp",
+  "clean-counter-pack": "/product-images/pack-clean-counter.webp",
 };
 
 export function ProductVisual({
@@ -12,14 +35,17 @@ export function ProductVisual({
   className = "",
   compact = false,
   ratio = "auto",
+  variant = "card",
+  priority = false,
 }: {
   product: Product;
   label?: string;
   className?: string;
   compact?: boolean;
   ratio?: "auto" | "square" | "wide";
+  variant?: ProductImageVariant;
+  priority?: boolean;
 }) {
-  const description = imageDescriptions[product.id];
   const frameClass = compact
     ? "min-h-20"
     : ratio === "square"
@@ -27,35 +53,32 @@ export function ProductVisual({
       : ratio === "wide"
         ? "aspect-[5/4] min-h-0"
         : "min-h-[280px]";
-  const contentClass = compact
-    ? "min-h-20 p-2"
-    : ratio === "auto"
-      ? "min-h-[280px] p-8"
-      : "h-full p-8";
 
   return (
-    <div
-      className={`relative overflow-hidden rounded-2xl border border-dashed border-charcoal/25 bg-warm-50 shadow-soft ${frameClass} ${className}`}
-      role="img"
-      aria-label={`${label}: ${product.nameAr}`}
-    >
-      <div className={`relative z-10 flex h-full flex-col items-center justify-center text-center ${contentClass}`}>
-        <p className={`max-w-md font-black text-charcoal/55 ${compact ? "text-[10px] leading-5" : "text-base leading-8"}`}>
-          {description}
-        </p>
-      </div>
+    <div className={`relative overflow-hidden rounded-2xl bg-warm-50 shadow-soft ${frameClass} ${className}`} role="img" aria-label={`${label}: ${product.nameAr}`}>
+      <Image
+        src={productImages[product.id][variant]}
+        alt={`${label}: ${product.nameAr}`}
+        fill
+        priority={priority}
+        sizes={compact ? "(min-width: 640px) 280px, 50vw" : ratio === "square" ? "(min-width: 1024px) 520px, 100vw" : "(min-width: 1024px) 560px, 100vw"}
+        className="object-cover"
+      />
     </div>
   );
 }
 
 export function KitchenHeroVisual() {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-dashed border-charcoal/25 bg-warm-50 p-4 shadow-soft" aria-label="منتجات مطبخ دفا">
-      <div className="flex aspect-[5/4] min-h-80 items-center justify-center rounded-2xl bg-white p-6 text-center">
-        <p className="max-w-lg text-base font-black leading-8 text-charcoal/55">
-          [صورة هيرو لمطبخ دفا تعرض قطاعة الخضار وحافظة الأرز والحبوب ومنظم الصحون على سطح مطبخ سعودي مرتب]
-        </p>
-      </div>
+    <div className="relative aspect-[5/4] min-h-80 overflow-hidden rounded-3xl bg-warm-50 shadow-soft" aria-label="منتجات مطبخ دفا">
+      <Image
+        src="/product-images/dafakitchen-home-hero.webp"
+        alt="منتجات مطبخ دفا على سطح مطبخ مرتب"
+        fill
+        priority
+        sizes="(min-width: 1024px) 540px, 100vw"
+        className="object-cover"
+      />
       <div className="pointer-events-none absolute inset-x-8 bottom-8 flex flex-wrap justify-center gap-2">
         {["تحضير أسرع", "مؤونة أرتب", "حوض أنظف"].map((label) => (
           <span key={label} className="rounded-full bg-olive px-4 py-2 text-xs font-black text-white shadow-soft">

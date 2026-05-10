@@ -11,6 +11,8 @@ export type CartItem = {
   unitPrice: number;
   totalPrice: number;
   titleAr: string;
+  packId?: string;
+  packName?: string;
 };
 
 type CartState = {
@@ -19,7 +21,9 @@ type CartState = {
   openCart: () => void;
   closeCart: () => void;
   addItem: (item: CartItem) => void;
+  addItems: (items: CartItem[]) => void;
   removeItem: (productId: Product["id"], offerId: OfferId) => void;
+  removePack: (packId: string) => void;
   clearCart: () => void;
 };
 
@@ -33,19 +37,48 @@ export const useCartStore = create<CartState>()(
       addItem: (item) =>
         set((state) => {
           const existing = state.items.find((cartItem) => cartItem.productId === item.productId);
+          const blockedPackId = existing?.packId;
+          const baseItems = blockedPackId
+            ? state.items.filter((cartItem) => cartItem.packId !== blockedPackId)
+            : state.items;
           if (existing) {
             return {
-              items: state.items.map((cartItem) =>
+              items: baseItems.map((cartItem) =>
                 cartItem.productId === item.productId ? item : cartItem,
-              ),
+              ).concat(baseItems.some((cartItem) => cartItem.productId === item.productId) ? [] : [item]),
               isCartOpen: true,
             };
           }
-          return { items: [...state.items, item], isCartOpen: true };
+          return { items: [...baseItems, item], isCartOpen: true };
+        }),
+      addItems: (items) =>
+        set((state) => {
+          const incomingProductIds = new Set(items.map((item) => item.productId));
+          const incomingPackIds = new Set(items.map((item) => item.packId).filter(Boolean));
+          const replacedPackIds = new Set(
+            state.items
+              .filter((item) => incomingProductIds.has(item.productId) && item.packId)
+              .map((item) => item.packId),
+          );
+          const nextItems = state.items.filter((item) => {
+            if (incomingProductIds.has(item.productId)) return false;
+            if (item.packId && incomingPackIds.has(item.packId)) return false;
+            if (item.packId && replacedPackIds.has(item.packId)) return false;
+            return true;
+          });
+          return { items: [...nextItems, ...items], isCartOpen: true };
         }),
       removeItem: (productId, offerId) =>
+        set((state) => {
+          const target = state.items.find((item) => item.productId === productId && item.offerId === offerId);
+          if (target?.packId) {
+            return { items: state.items.filter((item) => item.packId !== target.packId) };
+          }
+          return { items: state.items.filter((item) => item.productId !== productId || item.offerId !== offerId) };
+        }),
+      removePack: (packId) =>
         set((state) => ({
-          items: state.items.filter((item) => item.productId !== productId || item.offerId !== offerId),
+          items: state.items.filter((item) => item.packId !== packId),
         })),
       clearCart: () => set({ items: [] }),
     }),

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Award, Banknote, CheckCircle2, PackageCheck, Settings2, Star, Timer, Truck } from "lucide-react";
+import { Award, Banknote, CheckCircle2, ClipboardCheck, PackageCheck, PhoneCall, ShieldCheck, Sparkles, Star, Timer, Truck } from "lucide-react";
 import { OfferSelector } from "@/components/product/offer-selector";
 import { ProductCard } from "@/components/product/product-card";
 import { ReviewCard } from "@/components/product/review-card";
@@ -71,7 +71,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <OfferSelector product={product} />
             </div>
           </div>
-          <ProductVisual product={product} ratio="square" className="order-1 lg:order-2 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-32" />
+          <ProductVisual product={product} ratio="square" variant="hero" priority className="order-1 lg:order-2 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-32" />
         </div>
         <div className="container-shell mt-6 overflow-x-auto pb-1">
           <div className="flex min-w-max gap-4 md:min-w-0 md:grid md:grid-cols-3">
@@ -97,13 +97,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <h2 className="mt-3 text-3xl font-black leading-tight">{product.painAr}</h2>
           <p className="mt-4 rounded-2xl bg-warm-50 p-5 text-lg font-black leading-9 text-date">{product.demoHookAr}</p>
         </div>
-        <ProductVisual product={product} label="استخدام المنتج" />
+        <ProductVisual product={product} label="استخدام المنتج" variant="usage" />
       </section>
 
       <section className="bg-white py-14">
         <div className="container-shell grid items-center gap-8 md:grid-cols-[0.9fr_1fr]">
           <div className="order-2 md:order-1">
-            <ProductVisual product={product} label="تفاصيل المنتج" ratio="wide" className="rounded-3xl" />
+            <ProductVisual product={product} label="تفاصيل المنتج" ratio="wide" variant="benefits" className="rounded-3xl" />
           </div>
           <div className="order-1 md:order-2">
             <p className="text-sm font-black text-date">الفوائد</p>
@@ -122,60 +122,81 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
       </section>
 
-      <section className="container-shell py-14">
-        <div className="rounded-3xl bg-date p-6 text-white shadow-soft md:p-8">
-          <p className="text-sm font-black text-gold">ثقة قبل التوصيل</p>
-          <h2 className="mt-3 text-3xl font-black">مو مجرد إعلان، نأكد معك قبل الشحن عشان توصلك وأنت مقتنعة</h2>
-          <div className="mt-6 grid gap-3 md:grid-cols-3">
+      <section className="bg-date py-14 text-white">
+        <div className="container-shell grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+          <div>
+            <p className="text-sm font-black text-gold">ثقة قبل التوصيل</p>
+            <h2 className="mt-3 text-3xl font-black leading-tight md:text-4xl">طلب واضح قبل ما يتحرك من المستودع</h2>
+            <p className="mt-4 font-bold leading-8 text-white/72">
+              تجربة الدفع عند الاستلام تحتاج وضوح أكثر من زر شراء. لذلك نخلي خطوة التأكيد جزء من الخدمة، مو إجراء زائد.
+            </p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
             {[
-              "نشرح لك المنتج والكمية في اتصال التأكيد",
-              "الدفع عند الاستلام داخل السعودية",
-              "الضمان الذهبي يعطيك راحة بعد الاستلام",
-            ].map((item) => (
-              <div key={item} className="rounded-2xl bg-white/10 p-4 text-sm font-bold leading-7 text-white/85">
-                {item}
+              [PhoneCall, "مكالمة قصيرة", "نراجع المنتج والكمية قبل تجهيز الشحنة."],
+              [Banknote, "الدفع عند الاستلام", "تدفعين بعد وصول الطلب، بدون دفع مسبق."],
+              [ShieldCheck, "راحة بعد الاستلام", "ضمان ذهبي 30 يوم حسب سياسة الاستبدال."],
+            ].map(([Icon, title, text], index) => (
+              <div key={title as string} className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/10 p-5">
+                <span className="absolute left-4 top-4 text-5xl font-black leading-none text-white/8">{index + 1}</span>
+                <span className="relative grid h-12 w-12 place-items-center rounded-2xl bg-gold text-charcoal">
+                  <Icon size={22} />
+                </span>
+                <h3 className="relative mt-5 text-lg font-black">{title as string}</h3>
+                <p className="relative mt-2 text-sm font-bold leading-7 text-white/72">{text as string}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="container-shell py-14">
-        <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="rounded-3xl border border-charcoal/10 bg-white p-6 shadow-soft">
-          <div className="flex items-center gap-3">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-warm-100 text-olive">
-              <Settings2 size={22} />
-            </span>
-            <div>
-              <p className="text-sm font-black text-date">اختيار دفا</p>
-              <h2 className="text-2xl font-black">نقاط عملية قبل الطلب</h2>
+      <section className="bg-warm-100 py-14">
+        <div className="container-shell">
+          <div className="mb-7 max-w-3xl">
+            <p className="text-sm font-black text-olive">اختيار دفا</p>
+            <h2 className="mt-2 text-3xl font-black leading-tight">تفاصيل نراجعها لأن المنتج لازم يستاهل مكانه في مطبخك</h2>
+          </div>
+          <div className="grid gap-5 lg:grid-cols-[1.18fr_0.82fr]">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {product.specs.map((spec, index) => (
+                <div key={spec} className="relative overflow-hidden rounded-2xl border border-charcoal/10 bg-white p-5 shadow-soft">
+                  <span className="absolute -left-2 -top-2 text-6xl font-black leading-none text-warm-100">{index + 1}</span>
+                  <span className="relative grid h-11 w-11 place-items-center rounded-xl bg-olive text-white">
+                    <ClipboardCheck size={20} />
+                  </span>
+                  <p className="relative mt-4 text-sm font-bold leading-7 text-charcoal/72">{spec}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded-3xl bg-olive p-6 text-white shadow-soft">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-black text-gold">داخل الطلب</p>
+                  <h2 className="mt-2 text-2xl font-black leading-tight">محتويات واضحة من أول اتصال</h2>
+                </div>
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/10 text-gold">
+                  <PackageCheck size={25} />
+                </span>
+              </div>
+              <div className="mt-6 grid gap-3">
+                {product.included.map((item) => (
+                  <div key={item} className="flex items-center gap-3 border-b border-white/10 pb-3 last:border-0 last:pb-0">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold text-charcoal">
+                      <CheckCircle2 size={17} />
+                    </span>
+                    <span className="font-black text-white/88">{item}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 rounded-2xl bg-white/10 p-4">
+                <Sparkles className="text-gold" size={20} />
+                <p className="mt-2 text-sm font-bold leading-7 text-white/72">
+                  نختصر عليك القرار: تعرفين ماذا يأتيك، ولماذا اخترناه، وكيف نؤكده قبل الشحن.
+                </p>
+              </div>
             </div>
           </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            {product.specs.map((spec) => (
-              <div key={spec} className="flex gap-3 rounded-2xl bg-warm-50 p-4 text-sm font-bold leading-7">
-                <CheckCircle2 className="mt-1 shrink-0 text-olive" size={18} />
-                <span>{spec}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="rounded-3xl bg-olive p-6 text-white shadow-soft">
-          <PackageCheck className="mb-5 text-gold" size={34} />
-          <p className="text-sm font-black text-gold">داخل الطلب</p>
-          <h2 className="mt-2 text-2xl font-black">كل شيء تحتاجينه لاستخدام المنتج</h2>
-          <div className="mt-6 flex flex-wrap gap-2">
-            {product.included.map((item) => (
-              <span key={item} className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white/85">
-                {item}
-              </span>
-            ))}
-          </div>
-          <p className="mt-6 rounded-2xl bg-white/10 p-4 text-sm font-bold leading-7 text-white/75">
-            نركز على التفاصيل التي تساعدك تقررين بثقة قبل الشحن، بدون حشو زائد.
-          </p>
-        </div>
         </div>
       </section>
 
