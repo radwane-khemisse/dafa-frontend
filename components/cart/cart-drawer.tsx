@@ -10,14 +10,22 @@ import { getCrossSells, getProductById, type Product } from "@/data/products";
 import { Button } from "@/components/ui/button";
 import { createOrder } from "@/lib/api";
 import { createEventId } from "@/lib/event-id";
-import { normalizeKsaPhone } from "@/lib/phone";
+import { validateKsaPhone } from "@/lib/phone";
 import { trackEvent } from "@/lib/tracking";
 import { makeCartItem, useCartStore, type CartItem } from "@/store/cart-store";
 import { ProductVisual } from "@/components/ui/product-visual";
 
 const checkoutSchema = z.object({
   name: z.string().trim().min(2, "اكتبي الاسم بشكل صحيح"),
-  phone: z.string().refine((value) => normalizeKsaPhone(value) !== null, "اكتبي رقم جوال سعودي صحيح"),
+  phone: z.string().superRefine((value, ctx) => {
+    const result = validateKsaPhone(value);
+    if (!result.ok) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: result.message,
+      });
+    }
+  }),
 });
 
 type CheckoutValues = z.infer<typeof checkoutSchema>;
@@ -119,8 +127,9 @@ export function CartDrawer() {
   async function submitFinalOrder(values: CheckoutValues, eventId: string, acceptedUpsell: boolean, upsellItems: CartItem[] = []) {
     setSubmitting(true);
     try {
-      const normalized = normalizeKsaPhone(values.phone);
-      if (!normalized) throw new Error("رقم الجوال غير صحيح");
+      const phoneValidation = validateKsaPhone(values.phone);
+      if (!phoneValidation.ok) throw new Error(phoneValidation.message);
+      const normalized = phoneValidation.phone;
       const itemsForOrder = [...useCartStore.getState().items, ...upsellItems];
       closeCart();
       setUpsellOpen(false);
@@ -423,10 +432,11 @@ function CheckoutModal({
           <label className="grid gap-2 text-sm font-bold">
             رقم الجوال السعودي
             <input
-              className="focus-ring rounded-xl border border-charcoal/15 bg-warm-50 px-4 py-3"
+              className="focus-ring rounded-xl border border-charcoal/15 bg-warm-50 px-4 py-3 text-right"
               placeholder="05XXXXXXXX"
-              dir="rtl"
+              dir="ltr"
               inputMode="tel"
+              autoComplete="tel"
               {...register("phone")}
             />
             {errors.phone ? <span className="text-xs text-red-700">{errors.phone.message}</span> : null}
