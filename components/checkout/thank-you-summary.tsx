@@ -89,7 +89,7 @@ export function ThankYouSummary({ fallbackOrderId, fallbackTotal }: { fallbackOr
           </div>
         </div>
         <div className="mt-5 grid gap-3 md:grid-cols-3">
-          <InfoTile icon={MessageCircle} label="سنؤكد" value="المنتج والمبلغ" />
+          <InfoTile icon={MessageCircle} label="سنؤكد" value="المنتجات والكمية والمبلغ" />
           <InfoTile icon={MapPin} label="سنراجع" value="المدينة والحي والعنوان" />
           <InfoTile icon={Truck} label="ثم نبدأ" value="تجهيز الشحنة" />
         </div>
@@ -202,9 +202,9 @@ export function ThankYouSummary({ fallbackOrderId, fallbackTotal }: { fallbackOr
 
       <section className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-soft md:p-6">
         <div>
-          <p className="text-sm font-black text-olive">كملي تجهيز مطبخك</p>
-          <h2 className="mt-1 text-2xl font-black">منتجات تناسب طلبك</h2>
-          <p className="mt-2 text-sm font-bold leading-7 text-charcoal/62">إذا احتجت منتج مكمل، تقدرين تضيفينه كطلب جديد الآن ونؤكده معك بنفس طريقة الاتصال.</p>
+          <p className="text-sm font-black text-olive">للطلب القادم</p>
+          <h2 className="mt-1 text-2xl font-black">منتجات تكمل روتين مطبخك</h2>
+          <p className="mt-2 text-sm font-bold leading-7 text-charcoal/62">إذا تذكرتِ منتج مكمل، تقدرين تطلبينه بنفس طريقة الدفع عند الاستلام ونؤكده معك قبل الشحن.</p>
           <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {suggestedProducts.length ? (
               suggestedProducts.map((product) => <ProductCard key={product.id} product={product} />)

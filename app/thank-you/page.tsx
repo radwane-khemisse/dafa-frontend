@@ -19,9 +19,9 @@ export default async function ThankYouPage({
             <div className="inline-flex items-center gap-2 rounded-full bg-white/12 px-4 py-2 text-sm font-black">
               <CheckCircle2 size={18} /> تم استلام طلبك
             </div>
-            <h1 className="mt-5 text-4xl font-black leading-tight md:text-5xl">باقي مكالمة التأكيد ونبدأ تجهيز الشحنة</h1>
+            <h1 className="mt-5 text-4xl font-black leading-tight md:text-5xl">باقي مكالمة التأكيد ونبدأ تجهيز طلبك</h1>
             <p className="mt-4 max-w-2xl text-lg font-bold leading-9 text-white/82">
-              لأن الطلب بالدفع عند الاستلام، نحتاج نكلمك مكالمة قصيرة لتأكيد العنوان قبل الشحن. الرد على المكالمة هو أسرع طريقة لوصول طلبك بدون تأخير.
+              لأن الطلب بالدفع عند الاستلام، نحتاج مكالمة قصيرة لتأكيد المنتجات والكمية والعنوان. الرد على المكالمة هو أسرع طريقة لتجهيز طلبك بدون تأخير.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl bg-white/10 p-4">

@@ -6,10 +6,10 @@ export default function ProductsPage() {
     <>
       <section className="bg-warm-100 py-14">
         <div className="container-shell text-center">
-          <p className="text-sm font-black text-date">مجموعة مطبخ دفا</p>
-          <h1 className="mt-3 text-4xl font-black">أدوات صغيرة تغيّر إحساسك بالمطبخ كل يوم</h1>
+          <p className="text-sm font-black text-date">منتجات مطبخ دفا</p>
+          <h1 className="mt-3 text-4xl font-black">اختاري منتج يحل مشكلة يومية، أو عرض يوفر عليك أكثر</h1>
           <p className="mx-auto mt-4 max-w-2xl leading-8 text-charcoal/70">
-            اختيارات عملية للمطبخ السعودي: تقطيع أسرع، مؤونة مرتبة، وحوض أنظف بعد الغسيل. واضحة في الاستخدام، مناسبة للدفع عند الاستلام، ونأكدها معك قبل الشحن.
+            تقطيع أسرع، مؤونة مرتبة، ورخام أوسع بعد الغسيل. تقدرين تاخذين قطعة واحدة للتجربة أو عرض القطعتين والثلاث إذا يناسب البيت أو الهدية.
           </p>
         </div>
       </section>

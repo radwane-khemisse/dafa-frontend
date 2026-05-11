@@ -4,13 +4,13 @@ export default function AboutPage() {
   const standards = [
     {
       icon: ClipboardCheck,
-      title: "نختار المشكلة قبل المنتج",
-      text: "كل أداة لازم تحل تعب يومي واضح: تحضير أسرع، تخزين أرتب، أو حوض أنظف بعد الغسيل.",
+      title: "نختار حسب الاستخدام اليومي",
+      text: "كل أداة لازم تخدم لحظة واضحة: سلطة وكشنة، مؤونة، أو صحون بعد الغسيل.",
     },
     {
       icon: Home,
-      title: "نشرح الفائدة بلغة البيت",
-      text: "بدون مبالغة أو وعود كبيرة. نوضح لك أين يفيدك المنتج وكيف يدخل في روتين المطبخ.",
+      title: "نوضح متى تكفيك قطعة ومتى يفيدك العرض",
+      text: "إذا يناسبك منتج واحد نقولها، وإذا عرض القطعتين أو الباقة أوفر لبيتك نوضح السبب.",
     },
     {
       icon: PhoneCall,
@@ -26,10 +26,10 @@ export default function AboutPage() {
           <div>
             <p className="text-sm font-black text-gold">من نحن</p>
             <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight md:text-5xl">
-              مطبخ دفا بيت اختيار أدوات المطبخ العملية للبيت السعودي
+            مطبخ دفا يختار أدوات تخفف شغل المطبخ اليومي في البيت السعودي
             </h1>
             <p className="mt-5 max-w-2xl font-bold leading-8 text-white/76">
-              ما نبيع أدوات عشوائية أو منتجات ترند عابرة. نختار أدوات تفهمين فائدتها من أول نظرة، وتبقى مفيدة بعد الحماس الأول: سطح أرتب، تحضير أسرع، ومطبخ أهدأ.
+              نركز على منتجات واضحة الاستخدام وتدخل الروتين بسرعة: تحضير أسرع، مؤونة أرتب، ورخام أوسع. والعروض عندنا مبنية على توفير حقيقي، مو زيادة بلا سبب.
             </p>
           </div>
           <div className="rounded-3xl border border-white/12 bg-white/8 p-5">
@@ -37,7 +37,7 @@ export default function AboutPage() {
               <Sparkles className="text-gold" size={32} />
               <h2 className="mt-4 text-2xl font-black">معيار دفا</h2>
               <div className="mt-4 grid gap-3 text-sm font-bold leading-7 text-charcoal/68">
-                {["يحل مشكلة يومية واضحة", "سهل الفهم قبل الشراء", "عملي للدفع عند الاستلام"].map((item) => (
+                {["يحل مشكلة يومية واضحة", "له عرض توفير منطقي", "نؤكده قبل الشحن"].map((item) => (
                   <p key={item} className="flex items-start gap-2">
                     <CheckCircle2 className="mt-1 shrink-0 text-olive" size={17} />
                     {item}
@@ -68,9 +68,9 @@ export default function AboutPage() {
           </span>
           <div>
             <p className="text-sm font-black text-gold">وعدنا البسيط</p>
-            <h2 className="mt-1 text-2xl font-black">نساعدك تختارين أداة عملية، مو قطعة تزيد الزحمة</h2>
+            <h2 className="mt-1 text-2xl font-black">نساعدك تختارين طلب مفيد، مو قطعة تزيد الزحمة</h2>
             <p className="mt-2 max-w-3xl text-sm font-bold leading-7 text-white/72">
-              لذلك تلاحظين في مطبخ دفا لغة واضحة، منتجات قليلة ومنتقاة، وتأكيد قبل الشحن حتى يكون الطلب مفهوم ومناسب لك.
+              لذلك تلاحظين في مطبخ دفا لغة واضحة، منتجات قليلة ومنتقاة، وعروض تشجعك توفرين فقط إذا كانت مناسبة لروتين بيتك.
             </p>
           </div>
         </div>

@@ -35,7 +35,7 @@ export function PackCard({ pack }: { pack: Pack }) {
         </div>
         <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-bold text-charcoal/50">سعر الباقة</p>
+            <p className="text-xs font-bold text-charcoal/50">سعر المنتجين معا</p>
             <p className="text-2xl font-black">{pack.price} ريال</p>
             <p className="text-xs font-bold text-charcoal/45 line-through">{pack.compareAtPrice} ريال منفردة</p>
           </div>
@@ -44,7 +44,7 @@ export function PackCard({ pack }: { pack: Pack }) {
               href={`/packs/${pack.slug}`}
               className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-charcoal/15 bg-white/70 px-4 py-3 text-sm font-bold transition hover:bg-white"
             >
-              تفاصيل الباقة
+              شوفي التفاصيل
               <ArrowLeft size={16} />
             </Link>
             <AddPackButton pack={pack} />

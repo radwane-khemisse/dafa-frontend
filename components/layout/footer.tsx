@@ -20,7 +20,7 @@ export function Footer() {
             </div>
           </div>
           <p className="mt-5 max-w-sm text-sm leading-7 text-white/70">
-            مطبخ دفا بيت اختيار أدوات المطبخ العملية للبيت السعودي. نختار أدوات تحل مشكلة يومية واضحة، ونؤكد الطلب باتصال قبل الشحن.
+            مطبخ دفا يختار أدوات عملية للبيت السعودي، مع عروض توفر عليك إذا تبغين أكثر من قطعة أو منتجين يكملون بعض.
           </p>
         </div>
 
@@ -41,8 +41,8 @@ export function Footer() {
         </FooterSection>
 
         <FooterSection title="الثقة والطلب">
-          <span className="flex items-center gap-2"><Truck size={16} /> شحن سريع للمدن الرئيسية</span>
-          <span className="flex items-center gap-2"><PhoneCall size={16} /> تأكيد عبر اتصال هاتفي</span>
+          <span className="flex items-center gap-2"><Truck size={16} /> شحن للمدن الرئيسية حسب التغطية</span>
+          <span className="flex items-center gap-2"><PhoneCall size={16} /> تأكيد المنتج والكمية قبل الشحن</span>
           <span className="flex items-center gap-2"><ShieldCheck size={16} /> ضمان ذهبي 30 يوم</span>
         </FooterSection>
       </div>

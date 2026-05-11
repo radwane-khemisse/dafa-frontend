@@ -65,10 +65,10 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
         <div className="mt-4 flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs text-charcoal/50">ابتداء من</p>
+            <p className="text-xs text-charcoal/50">العروض تبدأ من</p>
             <p className="text-2xl font-black">199 ريال</p>
           </div>
-          <Button onClick={addDefaultOffer} variant="gold">اختاري العرض</Button>
+          <Button onClick={addDefaultOffer} variant="gold">أضيفي الأكثر طلبا</Button>
         </div>
       </div>
     </article>

@@ -25,9 +25,9 @@ export default function ContactPage() {
       <div className="grid items-center gap-8 md:grid-cols-[0.95fr_1.05fr]">
         <div>
           <p className="text-sm font-black text-date">تواصل معنا</p>
-          <h1 className="mt-3 text-4xl font-black">نساعدك قبل وبعد الطلب</h1>
+          <h1 className="mt-3 text-4xl font-black">عندك سؤال قبل تختارين العرض؟</h1>
           <p className="mt-4 leading-8 text-charcoal/70">
-            للدفع عند الاستلام، نؤكد الطلب قبل الشحن حتى توصل الشحنة ببيانات واضحة. لأي سؤال عن الطلب أو المنتجات، راسلينا على البريد ونرد عليك خلال ساعات العمل.
+            إذا تبغين تعرفين هل يناسبك منتج واحد، عرض القطعتين، أو الباقة، راسلينا. ونؤكد كل طلب قبل الشحن عشان توصل الشحنة ببيانات واضحة.
           </p>
           <div className="mt-7">
             <ButtonLink href="mailto:support@dafakitchen.shop" variant="gold">
@@ -38,9 +38,9 @@ export default function ContactPage() {
         <div className="overflow-hidden rounded-3xl border border-charcoal/10 bg-white shadow-soft">
           <div className="bg-olive p-6 text-white">
             <p className="text-sm font-black text-gold">معلومات الدعم</p>
-            <h2 className="mt-2 text-2xl font-black">خدمة مرتبة وواضحة قبل الشحن</h2>
+            <h2 className="mt-2 text-2xl font-black">مساعدة واضحة قبل ما نجهز الطلب</h2>
             <p className="mt-3 text-sm font-bold leading-7 text-white/75">
-              الدعم متاح عبر البريد خلال ساعات العمل. نساعدك في أسئلة المنتجات، طلبات الدفع عند الاستلام، وتأكيد بيانات الطلب قبل الشحن.
+              نساعدك في أسئلة المنتجات، اختيار العرض المناسب، طلبات الدفع عند الاستلام، وتأكيد بيانات الطلب قبل الشحن.
             </p>
           </div>
           <div className="grid gap-3 bg-warm-50 p-5">

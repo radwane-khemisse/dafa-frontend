@@ -52,8 +52,8 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
 
       <section className="container-shell -mt-8 grid gap-5 pb-14 lg:grid-cols-[1fr_0.78fr]">
         <div className="rounded-3xl border border-charcoal/10 bg-white p-6 shadow-soft">
-          <p className="text-sm font-black text-date">ليش هذه الباقة؟</p>
-          <h2 className="mt-2 text-3xl font-black">منتجان يخدمان نفس روتين المطبخ</h2>
+          <p className="text-sm font-black text-date">ليش الباقة أوفر؟</p>
+          <h2 className="mt-2 text-3xl font-black">منتجان تستخدمينهم في نفس الروتين، بسعر أقل</h2>
           <div className="mt-6 grid gap-3">
             {pack.benefits.map((benefit) => (
               <p key={benefit} className="flex gap-3 rounded-2xl bg-warm-50 p-4 text-sm font-bold leading-7 text-charcoal/70">
@@ -72,14 +72,14 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
             <p className="pb-1 text-sm font-bold text-white/45 line-through">{pack.compareAtPrice} ريال</p>
           </div>
           <p className="mt-3 rounded-2xl bg-white/10 p-4 text-sm font-black leading-7 text-white/82">
-            توفرين {saving} ريال مقارنة بشراء المنتجين منفردين.
+            توفرين {saving} ريال وتستلمين المنتجين في نفس الطلب بدل طلبين منفصلين.
           </p>
           <AddPackButton pack={pack} className="mt-5 w-full" />
           <div className="mt-5 grid gap-3 text-sm font-bold text-white/76">
             {[
               [Banknote, "الدفع عند الاستلام"],
               [PhoneCall, "اتصال تأكيد قبل الشحن"],
-              [Truck, "الشحن المجاني ضمن العرض الحالي"],
+              [Truck, "تستلمين المنتجين في نفس الشحنة"],
             ].map(([Icon, text]) => (
               <p key={text as string} className="flex items-center gap-2">
                 <Icon size={17} className="text-gold" />
@@ -115,10 +115,10 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
               <Sparkles size={22} />
             </span>
             <div>
-              <p className="text-sm font-black text-date">اختيار دفا</p>
-              <h2 className="mt-1 text-2xl font-black">الباقات ليست كميات مكررة، بل منتجات تكمل بعضها</h2>
+              <p className="text-sm font-black text-date">اختيار أذكى للبيت</p>
+              <h2 className="mt-1 text-2xl font-black">الباقات روتين كامل بسعر أوفر</h2>
               <p className="mt-2 text-sm font-bold leading-7 text-charcoal/64">
-                بدل شراء 3 قطع من نفس المنتج، نرفع قيمة الطلب بمنتجات تخدم نفس روتين المطبخ وتبقى مفيدة بعد الاستلام.
+                بدل ما تطلبين منتج اليوم وترجعين تطلبين المكمل بعد أسبوع، خذي الاثنين مع بعض ووفري في السعر والتأكيد والشحنة.
               </p>
             </div>
           </div>

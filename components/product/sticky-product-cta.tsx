@@ -15,7 +15,7 @@ export function StickyProductCta({ product }: { product: Product }) {
       <div className="container-shell flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-sm font-black text-charcoal">{product.nameAr}</p>
-          <p className="text-xs font-bold text-charcoal/60">العرض الأكثر طلبا: {defaultOffer.price} ريال</p>
+          <p className="text-xs font-bold text-charcoal/60">الأكثر طلبا يوفر عليك: {defaultOffer.price} ريال</p>
         </div>
         <button
           type="button"
@@ -23,7 +23,7 @@ export function StickyProductCta({ product }: { product: Product }) {
           className="focus-ring inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-gold px-5 py-3 text-sm font-black text-charcoal shadow-soft transition hover:bg-[#b98932]"
         >
           <ShoppingCart size={18} />
-          اختاري العرض
+          شوفي التوفير
           <ArrowUp size={16} />
         </button>
       </div>

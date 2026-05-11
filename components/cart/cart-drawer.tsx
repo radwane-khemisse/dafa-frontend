@@ -210,7 +210,7 @@ export function CartDrawer() {
           {items.length === 0 ? (
             <div className="rounded-2xl bg-white p-6 text-center">
               <p className="font-black">السلة فارغة</p>
-              <p className="mt-2 text-sm text-charcoal/60">اختاري عرض من المنتجات لإتمام الطلب.</p>
+              <p className="mt-2 text-sm text-charcoal/60">اختاري منتج أو باقة، والدفع يكون عند الاستلام بعد التأكيد.</p>
             </div>
           ) : (
             <div className="grid gap-3">
@@ -257,7 +257,7 @@ export function CartDrawer() {
 
           {crossSells.length > 0 && items.length > 0 ? (
             <div className="mt-6">
-              <h3 className="mb-3 font-black">كملي تجهيز مطبخك</h3>
+              <h3 className="mb-3 font-black">قد يناسب طلبك</h3>
               <div className="grid gap-3">
                 {crossSells.map((product) => (
                   <button
@@ -270,7 +270,7 @@ export function CartDrawer() {
                       <ProductVisual product={product} compact className="w-24 shrink-0 rounded-xl shadow-none" />
                       <span className="min-w-0">
                       <span className="block font-black">{product.nameAr}</span>
-                      <span className="text-xs text-charcoal/60">أضيفيها للطلب من 199 ريال</span>
+                      <span className="text-xs text-charcoal/60">أضيفيه لنفس الطلب بدل شحنة ثانية</span>
                       </span>
                     </span>
                     <Plus className="shrink-0" size={18} />
@@ -383,7 +383,7 @@ function CheckoutModal({
         <div className="mb-4 flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-black">تأكيد الطلب</h2>
-            <p className="mt-1 text-sm text-charcoal/60">+1200 عميلة وثقوا في مطبخ دفا لتحسين ترتيب وتجهيز المطبخ</p>
+            <p className="mt-1 text-sm text-charcoal/60">راجعي المنتجات والمبلغ، وبعدها نكلمك لتأكيد العنوان قبل الشحن</p>
           </div>
           <button type="button" onClick={onClose} className="focus-ring rounded-lg bg-warm-100 p-2">
             <X size={18} />
@@ -420,7 +420,7 @@ function CheckoutModal({
         <div className="mb-4 rounded-2xl border border-gold/30 bg-[#FFF7E4] p-4 text-sm font-bold leading-7 text-date">
           <span className="flex items-start gap-2">
             <PhoneCall size={18} className="mt-1 shrink-0" />
-            بعد إرسال الطلب سنتصل بك لتأكيد الشراء قبل الشحن، خليك قريبة من جوالك عشان ما يتأخر طلبك.
+            بعد إرسال الطلب بنتصل عليك لتأكيد المنتجات والكمية والعنوان. الرد على المكالمة يحجز طلبك للتجهيز أسرع.
           </span>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
@@ -500,14 +500,14 @@ function UpsellModal({
     <div className="fixed inset-0 z-[70] grid place-items-center bg-charcoal/60 p-4">
       <div className="w-full max-w-xl rounded-3xl bg-white p-5 shadow-soft">
         <div className="text-center">
-          <p className="text-sm font-black text-gold">عرض خاص قبل تأكيد الطلب</p>
-          <h2 className="mt-2 text-2xl font-black">أضيفي منتجا مكملا بـ 99 ريال</h2>
-          <p className="mt-3 text-sm leading-7 text-charcoal/65">نضيفه لنفس الطلب ونؤكده معك في نفس المكالمة.</p>
+          <p className="text-sm font-black text-gold">فرصة قبل تجهيز الشحنة</p>
+          <h2 className="mt-2 text-2xl font-black">أضيفي منتج مكمل بـ 99 ريال فقط</h2>
+          <p className="mt-3 text-sm leading-7 text-charcoal/65">نضيفه لنفس الطلب ونؤكده معك في نفس المكالمة، بدون طلب جديد أو شحنة ثانية.</p>
         </div>
 
         <div className="mt-5 rounded-2xl bg-warm-50 p-3">
           <div className="mb-2 flex items-center justify-between text-xs font-black text-charcoal/65">
-            <span>ينتهي العرض خلال</span>
+            <span>يبقى متاحا خلال</span>
             <span>{secondsLeft} ثانية</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-white">
@@ -527,7 +527,7 @@ function UpsellModal({
               <span className="flex min-w-0 items-center justify-between gap-3">
                 <span className="min-w-0">
                   <span className="block font-black">{upsellProduct.nameAr}</span>
-                  <span className="mt-1 block text-sm font-black text-date">ينضاف لنفس الطلب بـ 99 ريال</span>
+                  <span className="mt-1 block text-sm font-black text-date">سعر خاص لأنه مع نفس الطلب</span>
                 </span>
                 <span className="shrink-0 rounded-xl bg-gold px-4 py-2 text-sm font-black text-charcoal">99 ريال</span>
               </span>
@@ -537,10 +537,10 @@ function UpsellModal({
 
         <div className="grid gap-3">
           <Button onClick={() => upsellProduct && onAccept([upsellProduct])} disabled={isSubmitting || !upsellProduct} variant="gold" className="w-full">
-            أضيفيه للطلب بـ 99 ريال
+            أضيفيه مع طلبي بـ 99 ريال
           </Button>
           <Button onClick={onSkip} disabled={isSubmitting} variant="outline" className="w-full">
-            متابعة بدون العرض
+            لا، أكملي طلبي الحالي
           </Button>
         </div>
       </div>

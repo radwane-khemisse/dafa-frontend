@@ -19,7 +19,7 @@ const shippingPaymentFaq = [
   },
   {
     question: "هل الشحن مجاني؟",
-    answer: "نعم، عرض الشحن المجاني متاح حاليا خلال آخر ٤٨ ساعة من العرض، ويظهر مع طلبات المنتجات المؤكدة قبل الشحن.",
+    answer: "نعم، الشحن المجاني متاح ضمن العرض الحالي للطلبات المؤكدة قبل الشحن.",
   },
   {
     question: "متى يبدأ تجهيز الطلب؟",
@@ -65,7 +65,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-red-700 text-white">
                 <Timer size={17} />
               </span>
-              <span>آخر ٤٨ ساعة على عرض الشحن المجاني</span>
+              <span>الشحن مجاني ضمن العرض الحالي للطلبات المؤكدة</span>
             </div>
             <div id="product-offer" className="mt-6 scroll-mt-28">
               <OfferSelector product={product} />
@@ -106,8 +106,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <ProductVisual product={product} label="تفاصيل المنتج" ratio="wide" variant="benefits" className="rounded-3xl" />
           </div>
           <div className="order-1 md:order-2">
-            <p className="text-sm font-black text-date">الفوائد</p>
-            <h2 className="mt-3 text-3xl font-black">ليش راح تحبينه من أول أسبوع؟</h2>
+            <p className="text-sm font-black text-date">الفائدة اليومية</p>
+            <h2 className="mt-3 text-3xl font-black">وش الفرق اللي تحسينه من أول استخدامات؟</h2>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               {product.benefits.map((benefit, index) => (
                 <div key={benefit} className="relative overflow-hidden rounded-3xl border border-charcoal/10 bg-warm-50 p-4">
@@ -125,15 +125,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <section className="bg-date py-14 text-white">
         <div className="container-shell grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <div>
-            <p className="text-sm font-black text-gold">ثقة قبل التوصيل</p>
-            <h2 className="mt-3 text-3xl font-black leading-tight md:text-4xl">طلب واضح قبل ما يتحرك من المستودع</h2>
+            <p className="text-sm font-black text-gold">طلب بدون دفع مسبق</p>
+            <h2 className="mt-3 text-3xl font-black leading-tight md:text-4xl">نراجع العرض والكمية قبل ما يتحرك الطلب</h2>
             <p className="mt-4 font-bold leading-8 text-white/72">
-              تجربة الدفع عند الاستلام تحتاج وضوح أكثر من زر شراء. لذلك نخلي خطوة التأكيد جزء من الخدمة، مو إجراء زائد.
+              خصوصا مع عروض القطعتين والثلاث، نؤكد معك الكمية والمبلغ والعنوان حتى تستلمين طلب واضح بدون لخبطة.
             </p>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
             {[
-              [PhoneCall, "مكالمة قصيرة", "نراجع المنتج والكمية قبل تجهيز الشحنة."],
+              [PhoneCall, "مكالمة قصيرة", "نراجع المنتج والعرض والكمية قبل تجهيز الشحنة."],
               [Banknote, "الدفع عند الاستلام", "تدفعين بعد وصول الطلب، بدون دفع مسبق."],
               [ShieldCheck, "راحة بعد الاستلام", "ضمان ذهبي 30 يوم حسب سياسة الاستبدال."],
             ].map(([Icon, title, text], index) => (
@@ -153,8 +153,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <section className="bg-warm-100 py-14">
         <div className="container-shell">
           <div className="mb-7 max-w-3xl">
-            <p className="text-sm font-black text-olive">اختيار دفا</p>
-            <h2 className="mt-2 text-3xl font-black leading-tight">تفاصيل نراجعها لأن المنتج لازم يستاهل مكانه في مطبخك</h2>
+            <p className="text-sm font-black text-olive">قبل ما تختارين العرض</p>
+            <h2 className="mt-2 text-3xl font-black leading-tight">تفاصيل تساعدك تعرفين إذا يناسب روتين بيتك</h2>
           </div>
           <div className="grid gap-5 lg:grid-cols-[1.18fr_0.82fr]">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -192,7 +192,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <div className="mt-6 rounded-2xl bg-white/10 p-4">
                 <Sparkles className="text-gold" size={20} />
                 <p className="mt-2 text-sm font-bold leading-7 text-white/72">
-                  نختصر عليك القرار: تعرفين ماذا يأتيك، ولماذا اخترناه، وكيف نؤكده قبل الشحن.
+                  نختصر عليك القرار: تعرفين وش يجيك، وين تستخدمينه، وهل الأفضل لك قطعة واحدة أو عرض التوفير.
                 </p>
               </div>
             </div>
@@ -213,10 +213,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       <section className="container-shell grid gap-8 py-14 lg:grid-cols-[0.95fr_1fr]">
         <div>
-          <p className="text-sm font-black text-olive">ارفعي قيمة الطلب</p>
-          <h2 className="mt-2 text-3xl font-black">أضيفي منتج مكمل مع نفس الشحنة</h2>
+          <p className="text-sm font-black text-olive">كملي روتين المطبخ</p>
+          <h2 className="mt-2 text-3xl font-black">منتج ثاني يخدم نفس الطلب ويوصل معاه</h2>
           <p className="mt-3 leading-8 text-charcoal/65">
-            اختاري منتج ثاني من مطبخ دفا عشان تكملي نظام التحضير، التخزين، وترتيب الحوض.
+            إذا بتطلبين الآن، شوفي المنتج المكمل بدل ما تطلبينه لاحقا بشحنة ثانية.
           </p>
           <div className="mt-6 grid gap-4">
             {crossSells.map((item) => (

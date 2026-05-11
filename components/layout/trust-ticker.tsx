@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 const messages = [
   {
     icon: Truck,
-    title: "اختيار موثوق للبيت السعودي",
-    text: "أدوات عملية وليست ترندات عشوائية",
+    title: "عروض أوفر للبيت السعودي",
+    text: "قطعة، قطعتين، أو باقة حسب احتياجك",
   },
   {
     icon: Award,
@@ -16,13 +16,13 @@ const messages = [
   },
   {
     icon: Headphones,
-    title: "تأكيد عبر اتصال هاتفي",
-    text: "نتأكد أن المنتج والكمية واضحين لك",
+    title: "تأكيد قبل الشحن",
+    text: "نراجع المنتج والكمية والعنوان",
   },
   {
     icon: ShieldCheck,
     title: "الدفع عند الاستلام",
-    text: "اطلبي بثقة داخل السعودية",
+    text: "بدون دفع مسبق داخل السعودية",
   },
 ];
 

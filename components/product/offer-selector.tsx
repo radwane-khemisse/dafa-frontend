@@ -45,10 +45,10 @@ export function OfferSelector({ product, compact = false }: { product: Product; 
     <div className={`rounded-2xl border border-charcoal/10 bg-white p-4 shadow-soft ${compact ? "" : "md:p-6"}`}>
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-black">اختاري الكمية المناسبة لبيتك</p>
-          <p className="text-xs text-charcoal/60">الدفع عند الاستلام، ونكلمك قبل الشحن للتأكيد</p>
+          <p className="text-sm font-black">اختاري العرض الأنسب لبيتك</p>
+          <p className="text-xs text-charcoal/60">كل ما زادت الكمية، قل سعر القطعة. والدفع عند الاستلام.</p>
         </div>
-        <span className="rounded-full bg-warm-100 px-3 py-1 text-xs font-black text-date">وفر أكثر مع 2 أو 3</span>
+        <span className="rounded-full bg-warm-100 px-3 py-1 text-xs font-black text-date">أفضل قيمة مع 2 أو 3</span>
       </div>
 
       <div className="grid gap-4 pt-2">
@@ -103,7 +103,7 @@ export function OfferSelector({ product, compact = false }: { product: Product; 
 
       <Button onClick={handleAdd} className="mt-5 w-full text-base" variant="gold">
         <ShoppingCart size={18} />
-        أضيفي للسلة - {offer.price} ريال
+        اختاري هذا العرض - {offer.price} ريال
       </Button>
       
     </div>

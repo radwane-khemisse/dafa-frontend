@@ -36,7 +36,7 @@ export function AddPackButton({ pack, className = "" }: { pack: Pack; className?
   return (
     <Button onClick={handleAddPack} variant="gold" className={className}>
       <ShoppingCart size={18} />
-      أضيفي الباقة - {pack.price} ريال
+      أضيفي المنتجين - {pack.price} ريال
     </Button>
   );
 }

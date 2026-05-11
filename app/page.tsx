@@ -14,13 +14,13 @@ export default function HomePage() {
         <div className="container-shell grid items-center gap-10 md:grid-cols-[1fr_0.9fr]">
           <div>
             <p className="mb-4 inline-flex rounded-full bg-white px-4 py-2 text-sm font-black text-date shadow-soft">
-              بيت اختيار أدوات المطبخ العملية للبيت السعودي
+              أدوات مطبخ عملية للطبخ اليومي في البيت السعودي
             </p>
             <h1 className="max-w-3xl text-4xl font-black leading-tight md:text-6xl">
-              مطبخ دفا يختار لك الأدوات اللي تستاهل تدخل مطبخك
+              جهزي مطبخك بأدوات تقلل الفوضى وتوفر عليك وقت التحضير
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-9 text-charcoal/70">
-              مو كل أداة منتشرة تستاهل الشراء. نختار أدوات يومية واضحة للبيت السعودي: تجهز أسرع، ترتب الدولاب، وتخلي الحوض والسطح أهدأ بعد الغسيل.
+              اختاري منتجات تخدم روتينك فعلا: سلطة وكشنة أسرع، مؤونة أرتب، ورخام أوسع بعد الغسيل. وكل طلب نؤكده معك قبل الشحن.
             </p>
             <div className="mt-6 grid gap-3 text-sm font-black sm:grid-cols-3">
               {[
@@ -41,10 +41,10 @@ export default function HomePage() {
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
               <ButtonLink href="/products" variant="gold">
-                تسوقي الآن
+                شوفي العروض
                 <ArrowLeft size={18} />
               </ButtonLink>
-              <ButtonLink href="/about" variant="outline">لماذا مطبخ دفا؟</ButtonLink>
+              <ButtonLink href="/packs" variant="outline">وفري مع الباقات</ButtonLink>
             </div>
           </div>
           <KitchenHeroVisual />
@@ -57,8 +57,8 @@ export default function HomePage() {
         <div className="container-shell">
           <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
-          <p className="text-sm font-black text-date">اختيارات دفا</p>
-          <h2 className="mt-2 text-3xl font-black">أدوات مختارة بعقلية مطبخ، مو بعقلية ترند</h2>
+          <p className="text-sm font-black text-date">الأكثر مناسبة للطلب الأول</p>
+          <h2 className="mt-2 text-3xl font-black">ابدئي بمنتج يحل مشكلة تشوفينها كل يوم</h2>
             </div>
             <ButtonLink href="/products" variant="outline">عرض كل المنتجات</ButtonLink>
           </div>
@@ -73,10 +73,10 @@ export default function HomePage() {
       <section className="container-shell py-16">
         <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <p className="text-sm font-black text-olive">باقات دفا</p>
-            <h2 className="mt-2 max-w-3xl text-3xl font-black">ارفعي قيمة الطلب بمنتجات تكمل بعض، مو بكميات مكررة</h2>
+            <p className="text-sm font-black text-olive">باقات التوفير</p>
+            <h2 className="mt-2 max-w-3xl text-3xl font-black">خذي منتجين يكملون بعض ووفري بدل طلبين منفصلين</h2>
             <p className="mt-3 max-w-2xl text-sm font-bold leading-7 text-charcoal/62">
-              اخترنا باقات من منتجين يخدمون نفس روتين المطبخ، عشان يكون العرض منطقي ومفيد بعد الاستلام.
+              كل باقة تجمع منتجين يخدمون نفس لحظة الطبخ أو الترتيب، بسعر أقل من شرائهم منفردين.
             </p>
           </div>
           <ButtonLink href="/packs" variant="outline">عرض كل الباقات</ButtonLink>
@@ -90,8 +90,8 @@ export default function HomePage() {
 
        <section className="container-shell py-16">
         <div className="mb-8 text-center">
-          <p className="text-sm font-black text-olive">معيار مطبخ دفا</p>
-          <h2 className="mt-2 text-3xl font-black">نختار المنتج إذا كانت فائدته واضحة قبل ما يوصلك</h2>
+          <p className="text-sm font-black text-olive">ليش هذه المنتجات؟</p>
+          <h2 className="mt-2 text-3xl font-black">لأنها تحل لحظات مزعجة تتكرر في أغلب مطابخنا</h2>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           {[
@@ -110,18 +110,18 @@ export default function HomePage() {
 
       <section className="container-shell grid items-center gap-8 py-16 md:grid-cols-2">
         <div className="rounded-2xl bg-olive p-8 text-white">
-          <p className="text-sm font-black text-gold">هوية مطبخ دفا</p>
-          <h2 className="mt-3 text-3xl font-black leading-tight">نبيع الثقة قبل الأداة: اختيار واضح، استخدام يومي، وطلب مؤكد</h2>
+          <p className="text-sm font-black text-gold">طلب مريح وواضح</p>
+          <h2 className="mt-3 text-3xl font-black leading-tight">اختاري المنتج، خذي العرض الأنسب، وادفعي عند الاستلام</h2>
           <p className="mt-4 leading-8 text-white/75">
-            لأن الشراء بالدفع عند الاستلام يحتاج قناعة حقيقية، نختار أدوات تشوفين فائدتها من أول نظرة وتبقين محتاجتها بعد ما تهدأ رغبة الشراء.
+            نوضح لك الفائدة والسعر والمحتويات قبل الشحن. وإذا اخترتِ باقة أو كمية أكثر، يكون السبب توفير واستخدام واضح يناسب بيتك.
           </p>
         </div>
         <div className="grid gap-4">
           {[
-            [Sparkles, "مشكلة يومية في المطبخ", "ما نختار منتج إلا إذا كان يحل لحظة مزعجة تتكرر في البيت."],
-            [Wrench, "استخدام مفهوم بسرعة", "الأداة لازم تنفهم من أول نظرة وبدون شرح طويل."],
-            [Ruler, "مقاس وفائدة واضحين", "نوضح لك وين تستخدمينها ولماذا تستاهل مكانها."],
-            [ClipboardCheck, "طلب مطمئن", "الدفع عند الاستلام، اتصال تأكيد، وضمان ذهبي."],
+            [Sparkles, "فائدة واضحة", "كل منتج مربوط بلحظة استخدام: تحضير، تخزين، أو تجفيف."],
+            [Wrench, "سهل يدخل الروتين", "ما يحتاج شرح طويل ولا تركيب معقد عشان تستفيدين منه."],
+            [Ruler, "عرض يستاهل", "نبرز القطعتين والثلاث لأن التوفير واضح إذا يناسب بيتك."],
+            [ClipboardCheck, "تأكيد قبل الشحن", "نراجع المنتج والكمية والعنوان قبل تجهيز الطلب."],
           ].map(([Icon, title, body]) => (
             <div key={title as string} className="relative overflow-hidden rounded-3xl border border-charcoal/10 bg-white p-5 shadow-soft">
               <div className="absolute -left-8 -top-8 h-24 w-24 rounded-full bg-gold/15" />
@@ -155,11 +155,11 @@ export default function HomePage() {
 
       <section className="container-shell py-16">
         <div className="rounded-3xl bg-charcoal p-8 text-center text-white md:p-12">
-          <h2 className="text-3xl font-black">اختاري أداة تدخل مطبخك بثقة</h2>
+          <h2 className="text-3xl font-black">ابدئي بالعرض اللي يناسب بيتك اليوم</h2>
           <p className="mx-auto mt-4 max-w-2xl leading-8 text-white/70">
-            شوفي المنتج، اختاري العرض، ونكلمك قبل الشحن للتأكيد. إذا ما كان واضح لك، ما نشحنه.
+            شوفي المنتج، قارني التوفير، واختاري قطعة واحدة أو عرض القطعتين والثلاث حسب احتياج البيت.
           </p>
-          <ButtonLink href="/products" variant="gold" className="mt-7">اختاري منتجك</ButtonLink>
+          <ButtonLink href="/products" variant="gold" className="mt-7">اختاري العرض المناسب</ButtonLink>
         </div>
       </section>
     </>
