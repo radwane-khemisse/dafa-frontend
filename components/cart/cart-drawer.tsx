@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PhoneCall, Plus, ShieldCheck, Trash2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -125,6 +125,7 @@ export function CartDrawer() {
   }
 
   async function submitFinalOrder(values: CheckoutValues, eventId: string, acceptedUpsell: boolean, upsellItems: CartItem[] = []) {
+    if (isSubmitting) return;
     setSubmitting(true);
     try {
       const phoneValidation = validateKsaPhone(values.phone);
@@ -191,7 +192,7 @@ export function CartDrawer() {
         onClick={closeCart}
       />
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-full max-w-md flex-col bg-warm-50 shadow-soft transition duration-300 ${
+        className={`fixed inset-y-0 left-0 z-50 flex max-h-dvh w-full max-w-md flex-col bg-warm-50 shadow-soft transition duration-300 ${
           isCartOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-label="سلة التسوق"
@@ -206,7 +207,7 @@ export function CartDrawer() {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto p-5">
           {items.length === 0 ? (
             <div className="rounded-2xl bg-white p-6 text-center">
               <p className="font-black">السلة فارغة</p>
@@ -281,7 +282,7 @@ export function CartDrawer() {
           ) : null}
         </div>
 
-        <div className="border-t border-charcoal/10 bg-white p-5">
+        <div className="shrink-0 border-t border-charcoal/10 bg-white p-5">
           <div className="mb-4 flex items-center justify-between text-lg font-black">
             <span>الإجمالي</span>
             <span>{total} ريال</span>
@@ -378,8 +379,8 @@ function CheckoutModal({
   } = useForm<CheckoutValues>({ resolver: zodResolver(checkoutSchema) });
 
   return (
-    <div className="fixed inset-0 z-[60] grid place-items-center bg-charcoal/55 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-soft">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center overflow-y-auto bg-charcoal/55 p-3 sm:items-center sm:p-4">
+      <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-5 shadow-soft sm:max-h-[calc(100dvh-2rem)]">
         <div className="mb-4 flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-black">تأكيد الطلب</h2>
@@ -465,6 +466,19 @@ function UpsellModal({
   const [secondsLeft, setSecondsLeft] = useState(offerSeconds);
   const upsellProduct = products[0];
   const progress = (secondsLeft / offerSeconds) * 100;
+  const hasResolvedRef = useRef(false);
+
+  const acceptOffer = useCallback(() => {
+    if (!upsellProduct || hasResolvedRef.current || isSubmitting) return;
+    hasResolvedRef.current = true;
+    onAccept([upsellProduct]);
+  }, [isSubmitting, onAccept, upsellProduct]);
+
+  const skipOffer = useCallback(() => {
+    if (hasResolvedRef.current || isSubmitting) return;
+    hasResolvedRef.current = true;
+    onSkip();
+  }, [isSubmitting, onSkip]);
 
   useEffect(() => {
     if (!upsellProduct) return;
@@ -479,7 +493,7 @@ function UpsellModal({
   }, [upsellProduct]);
 
   useEffect(() => {
-    if (isSubmitting) return;
+    if (isSubmitting || hasResolvedRef.current) return;
 
     const startedAt = Date.now();
     const timer = window.setInterval(() => {
@@ -489,16 +503,16 @@ function UpsellModal({
 
       if (nextSecondsLeft === 0) {
         window.clearInterval(timer);
-        onSkip();
+        skipOffer();
       }
     }, 250);
 
     return () => window.clearInterval(timer);
-  }, [isSubmitting, onSkip]);
+  }, [isSubmitting, skipOffer]);
 
   return (
-    <div className="fixed inset-0 z-[70] grid place-items-center bg-charcoal/60 p-4">
-      <div className="w-full max-w-xl rounded-3xl bg-white p-5 shadow-soft">
+    <div className="fixed inset-0 z-[70] flex items-end justify-center overflow-y-auto bg-charcoal/60 p-3 sm:items-center sm:p-4">
+      <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto rounded-3xl bg-white p-5 shadow-soft sm:max-h-[calc(100dvh-2rem)]">
         <div className="text-center">
           <p className="text-sm font-black text-gold">فرصة قبل تجهيز الشحنة</p>
           <h2 className="mt-2 text-2xl font-black">أضيفي منتج مكمل بـ 99 ريال فقط</h2>
@@ -517,11 +531,10 @@ function UpsellModal({
 
         {upsellProduct ? (
           <div className="my-5 grid gap-3">
-            <button
-              type="button"
-              onClick={() => onAccept([upsellProduct])}
-              disabled={isSubmitting}
-              className="focus-ring grid gap-4 rounded-2xl border border-gold bg-[#FFF8E8] p-4 text-start transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-70"
+            <div
+              className={`grid gap-4 rounded-2xl border border-gold bg-[#FFF8E8] p-4 text-start ${
+                isSubmitting ? "opacity-70" : ""
+              }`}
             >
               <ProductVisual product={upsellProduct} ratio="wide" className="w-full rounded-xl shadow-none" />
               <span className="flex min-w-0 items-center justify-between gap-3">
@@ -531,15 +544,15 @@ function UpsellModal({
                 </span>
                 <span className="shrink-0 rounded-xl bg-gold px-4 py-2 text-sm font-black text-charcoal">99 ريال</span>
               </span>
-            </button>
+            </div>
           </div>
         ) : null}
 
         <div className="grid gap-3">
-          <Button onClick={() => upsellProduct && onAccept([upsellProduct])} disabled={isSubmitting || !upsellProduct} variant="gold" className="w-full">
+          <Button onClick={acceptOffer} disabled={isSubmitting || !upsellProduct} variant="gold" className="w-full">
             أضيفيه مع طلبي بـ 99 ريال
           </Button>
-          <Button onClick={onSkip} disabled={isSubmitting} variant="outline" className="w-full">
+          <Button onClick={skipOffer} disabled={isSubmitting} variant="outline" className="w-full">
             لا، أكملي طلبي الحالي
           </Button>
         </div>
