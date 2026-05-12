@@ -10,19 +10,19 @@ import { products } from "@/data/products";
 export default function HomePage() {
   return (
     <>
-      <section className="bg-warm-100 py-14 md:py-20">
-        <div className="container-shell grid items-center gap-10 md:grid-cols-[1fr_0.9fr]">
+      <section className="bg-warm-100 py-8 sm:py-12 md:py-20">
+        <div className="container-shell grid items-center gap-7 md:grid-cols-[1fr_0.9fr] md:gap-10">
           <div>
             <p className="mb-4 inline-flex rounded-full bg-white px-4 py-2 text-sm font-black text-date shadow-soft">
               أدوات مطبخ عملية للطبخ اليومي في البيت السعودي
             </p>
-            <h1 className="max-w-3xl text-4xl font-black leading-tight md:text-6xl">
+            <h1 className="max-w-3xl text-3xl font-black leading-tight sm:text-4xl md:text-6xl">
               جهزي مطبخك بأدوات تقلل الفوضى وتوفر عليك وقت التحضير
             </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-9 text-charcoal/70">
+            <p className="mt-4 max-w-2xl text-base leading-8 text-charcoal/70 sm:mt-5 sm:text-lg sm:leading-9">
               اختاري منتجات تخدم روتينك فعلا: سلطة وكشنة أسرع، مؤونة أرتب، ورخام أوسع بعد الغسيل. وكل طلب نؤكده معك قبل الشحن.
             </p>
-            <div className="mt-6 grid gap-3 text-sm font-black sm:grid-cols-3">
+            <div className="mt-5 grid gap-3 text-sm font-black sm:mt-6 sm:grid-cols-3">
               {[
                 [Banknote, "الدفع عند الاستلام"],
                 [PhoneCall, "اتصال تأكيد قبل الشحن"],
@@ -39,7 +39,7 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3 sm:mt-8">
               <ButtonLink href="/products" variant="gold">
                 شوفي العروض
                 <ArrowLeft size={18} />

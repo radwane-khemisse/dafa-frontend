@@ -70,7 +70,7 @@ export function ProductVisual({
 
 export function KitchenHeroVisual() {
   return (
-    <div className="relative aspect-[5/4] min-h-80 overflow-hidden rounded-3xl bg-warm-50 shadow-soft" aria-label="منتجات مطبخ دفا">
+    <div className="relative aspect-[5/4] min-h-60 overflow-hidden rounded-3xl bg-warm-50 shadow-soft sm:min-h-80" aria-label="منتجات مطبخ دفا">
       <Image
         src="/product-images/dafakitchen-home-hero.webp"
         alt="منتجات مطبخ دفا على سطح مطبخ مرتب"
@@ -79,7 +79,7 @@ export function KitchenHeroVisual() {
         sizes="(min-width: 1024px) 540px, 100vw"
         className="object-cover"
       />
-      <div className="pointer-events-none absolute inset-x-8 bottom-8 flex flex-wrap justify-center gap-2">
+      <div className="pointer-events-none absolute inset-x-4 bottom-4 flex flex-wrap justify-center gap-2 sm:inset-x-8 sm:bottom-8">
         {["تحضير أسرع", "مؤونة أرتب", "حوض أنظف"].map((label) => (
           <span key={label} className="rounded-full bg-olive px-4 py-2 text-xs font-black text-white shadow-soft">
             {label}

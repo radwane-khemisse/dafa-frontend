@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Banknote, PhoneCall, ShieldCheck, Star } from "lucide-react";
+import { ArrowLeft, Banknote, PhoneCall, ShieldCheck, ShoppingCart, Star } from "lucide-react";
 import type { Product } from "@/data/products";
 import { Button } from "@/components/ui/button";
 import { ProductVisual } from "@/components/ui/product-visual";
@@ -68,7 +68,19 @@ export function ProductCard({ product }: { product: Product }) {
             <p className="text-xs text-charcoal/50">العروض تبدأ من</p>
             <p className="text-2xl font-black">199 ريال</p>
           </div>
-          <Button onClick={addDefaultOffer} variant="gold">أضيفي الأكثر طلبا</Button>
+          <div className="grid shrink-0 gap-2">
+            <Button onClick={addDefaultOffer} variant="gold" className="px-4">
+              <ShoppingCart size={16} />
+              أضيفي للسلة
+            </Button>
+            <Link
+              href={`/products/${product.slug}`}
+              className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-charcoal/15 bg-white/70 px-4 py-2 text-sm font-bold transition hover:bg-white"
+            >
+              التفاصيل
+              <ArrowLeft size={15} />
+            </Link>
+          </div>
         </div>
       </div>
     </article>

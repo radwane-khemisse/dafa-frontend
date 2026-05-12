@@ -89,6 +89,24 @@ export function CartDrawer() {
     total_price: item.totalPrice,
   }));
 
+  useEffect(() => {
+    function updateAppHeight() {
+      const height = window.visualViewport?.height ?? window.innerHeight;
+      document.documentElement.style.setProperty("--app-height", `${height}px`);
+    }
+
+    updateAppHeight();
+    window.addEventListener("resize", updateAppHeight);
+    window.visualViewport?.addEventListener("resize", updateAppHeight);
+    window.visualViewport?.addEventListener("scroll", updateAppHeight);
+
+    return () => {
+      window.removeEventListener("resize", updateAppHeight);
+      window.visualViewport?.removeEventListener("resize", updateAppHeight);
+      window.visualViewport?.removeEventListener("scroll", updateAppHeight);
+    };
+  }, []);
+
   function addCrossSell(product: Product) {
     const item = makeCartItem(product, "one");
     addItem(item);
@@ -192,12 +210,12 @@ export function CartDrawer() {
         onClick={closeCart}
       />
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex max-h-dvh w-full max-w-md flex-col bg-warm-50 shadow-soft transition duration-300 ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-[var(--app-height,100dvh)] max-h-[var(--app-height,100dvh)] w-full max-w-md flex-col bg-warm-50 shadow-soft transition duration-300 ${
           isCartOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-label="سلة التسوق"
       >
-        <div className="flex items-center justify-between border-b border-charcoal/10 p-5">
+        <div className="shrink-0 flex items-center justify-between border-b border-charcoal/10 p-4 sm:p-5">
           <div>
             <h2 className="text-xl font-black">سلة الطلب</h2>
             <p className="text-xs text-charcoal/60">الدفع عند الاستلام - نؤكد الطلب قبل الشحن</p>
@@ -207,7 +225,7 @@ export function CartDrawer() {
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-5">
+        <div className="min-h-0 flex-1 overscroll-contain overflow-y-auto p-4 sm:p-5">
           {items.length === 0 ? (
             <div className="rounded-2xl bg-white p-6 text-center">
               <p className="font-black">السلة فارغة</p>
@@ -282,7 +300,7 @@ export function CartDrawer() {
           ) : null}
         </div>
 
-        <div className="shrink-0 border-t border-charcoal/10 bg-white p-5">
+        <div className="shrink-0 border-t border-charcoal/10 bg-white p-4 sm:p-5">
           <div className="mb-4 flex items-center justify-between text-lg font-black">
             <span>الإجمالي</span>
             <span>{total} ريال</span>
@@ -379,8 +397,8 @@ function CheckoutModal({
   } = useForm<CheckoutValues>({ resolver: zodResolver(checkoutSchema) });
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center overflow-y-auto bg-charcoal/55 p-3 sm:items-center sm:p-4">
-      <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-5 shadow-soft sm:max-h-[calc(100dvh-2rem)]">
+    <div className="fixed inset-0 z-[60] flex h-[var(--app-height,100dvh)] items-end justify-center overflow-y-auto overscroll-contain bg-charcoal/55 p-3 sm:items-center sm:p-4">
+      <div className="max-h-[calc(var(--app-height,100dvh)-1.5rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-4 shadow-soft sm:max-h-[calc(var(--app-height,100dvh)-2rem)] sm:p-5">
         <div className="mb-4 flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-black">تأكيد الطلب</h2>
@@ -511,8 +529,8 @@ function UpsellModal({
   }, [isSubmitting, skipOffer]);
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center overflow-y-auto bg-charcoal/60 p-3 sm:items-center sm:p-4">
-      <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto rounded-3xl bg-white p-5 shadow-soft sm:max-h-[calc(100dvh-2rem)]">
+    <div className="fixed inset-0 z-[70] flex h-[var(--app-height,100dvh)] items-end justify-center overflow-y-auto overscroll-contain bg-charcoal/60 p-3 sm:items-center sm:p-4">
+      <div className="max-h-[calc(var(--app-height,100dvh)-1.5rem)] w-full max-w-xl overflow-y-auto rounded-3xl bg-white p-4 shadow-soft sm:max-h-[calc(var(--app-height,100dvh)-2rem)] sm:p-5">
         <div className="text-center">
           <p className="text-sm font-black text-gold">فرصة قبل تجهيز الشحنة</p>
           <h2 className="mt-2 text-2xl font-black">أضيفي منتج مكمل بـ 99 ريال فقط</h2>

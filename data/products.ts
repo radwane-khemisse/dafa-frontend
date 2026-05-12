@@ -31,12 +31,12 @@ export type Product = {
 
 export const standardOffers: Offer[] = [
   { id: "one", labelAr: "قطعة واحدة", quantity: 1, price: 199 },
-  { id: "two", labelAr: "قطعتين للبيت أو هدية", quantity: 2, price: 279, badge: "الأكثر طلبا" },
+  { id: "two", labelAr: "قطعتين للبيت أو هدية", quantity: 2, price: 279, badge: "الأكثر اختياراً" },
 ];
 
 export const volumeOffers: Offer[] = [
   ...standardOffers,
-  { id: "three", labelAr: "3 قطع للبيت والأهل", quantity: 3, price: 349, badge: "أعلى توفير" },
+  { id: "three", labelAr: "3 قطع للبيت والأهل", quantity: 3, price: 349, badge: "الأكثر توفيراً" },
 ];
 
 const productDisplayOrder: Product["id"][] = ["vegetable_cutter", "rice_dispenser", "dish_drying_rack"];
