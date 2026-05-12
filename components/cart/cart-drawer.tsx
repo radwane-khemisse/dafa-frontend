@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from "react";
 import { PhoneCall, Plus, ShieldCheck, Trash2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -91,8 +91,11 @@ export function CartDrawer() {
 
   useEffect(() => {
     function updateAppHeight() {
-      const height = window.visualViewport?.height ?? window.innerHeight;
+      const viewport = window.visualViewport;
+      const height = viewport?.height ?? window.innerHeight;
+      const offsetTop = viewport?.offsetTop ?? 0;
       document.documentElement.style.setProperty("--app-height", `${height}px`);
+      document.documentElement.style.setProperty("--app-offset-top", `${offsetTop}px`);
     }
 
     updateAppHeight();
@@ -390,15 +393,42 @@ function CheckoutModal({
   onClose: () => void;
   onSubmit: (values: CheckoutValues) => void;
 }) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [isFieldFocused, setFieldFocused] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<CheckoutValues>({ resolver: zodResolver(checkoutSchema) });
 
+  function handleInputFocus(event: FocusEvent<HTMLInputElement>) {
+    setFieldFocused(true);
+    const input = event.currentTarget;
+
+    window.setTimeout(() => {
+      input.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 120);
+  }
+
+  function handleBlurCapture() {
+    window.setTimeout(() => {
+      if (!modalRef.current?.contains(document.activeElement)) {
+        setFieldFocused(false);
+      }
+    }, 0);
+  }
+
   return (
-    <div className="fixed inset-0 z-[60] flex h-[var(--app-height,100dvh)] items-end justify-center overflow-y-auto overscroll-contain bg-charcoal/55 p-3 sm:items-center sm:p-4">
-      <div className="max-h-[calc(var(--app-height,100dvh)-1.5rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-4 shadow-soft sm:max-h-[calc(var(--app-height,100dvh)-2rem)] sm:p-5">
+    <div
+      className={`fixed inset-x-0 top-[var(--app-offset-top,0px)] z-[60] flex h-[var(--app-height,100dvh)] justify-center overflow-y-auto overscroll-contain bg-charcoal/55 p-3 sm:items-center sm:p-4 ${
+        isFieldFocused ? "items-start" : "items-end"
+      }`}
+    >
+      <div
+        ref={modalRef}
+        onBlurCapture={handleBlurCapture}
+        className="max-h-[calc(var(--app-height,100dvh)-1.5rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-4 shadow-soft sm:max-h-[calc(var(--app-height,100dvh)-2rem)] sm:p-5"
+      >
         <div className="mb-4 flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-black">تأكيد الطلب</h2>
@@ -445,7 +475,11 @@ function CheckoutModal({
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
           <label className="grid gap-2 text-sm font-bold">
             الاسم
-            <input className="focus-ring rounded-xl border border-charcoal/15 bg-warm-50 px-4 py-3" {...register("name")} />
+            <input
+              className="focus-ring rounded-xl border border-charcoal/15 bg-warm-50 px-4 py-3"
+              onFocus={handleInputFocus}
+              {...register("name")}
+            />
             {errors.name ? <span className="text-xs text-red-700">{errors.name.message}</span> : null}
           </label>
           <label className="grid gap-2 text-sm font-bold">
@@ -456,6 +490,7 @@ function CheckoutModal({
               dir="ltr"
               inputMode="tel"
               autoComplete="tel"
+              onFocus={handleInputFocus}
               {...register("phone")}
             />
             {errors.phone ? <span className="text-xs text-red-700">{errors.phone.message}</span> : null}
