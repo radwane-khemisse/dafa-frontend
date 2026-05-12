@@ -30,7 +30,7 @@ export type Product = {
 };
 
 export const standardOffers: Offer[] = [
-  { id: "one", labelAr: "قطعة واحدة للتجربة", quantity: 1, price: 199 },
+  { id: "one", labelAr: "قطعة واحدة", quantity: 1, price: 199 },
   { id: "two", labelAr: "قطعتين للبيت أو هدية", quantity: 2, price: 279, badge: "الأكثر طلبا" },
 ];
 

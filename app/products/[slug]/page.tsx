@@ -65,7 +65,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-red-700 text-white">
                 <Timer size={17} />
               </span>
-              <span>الشحن مجاني ضمن العرض الحالي للطلبات المؤكدة</span>
+                            <span>آخر ٤٨ ساعة على عرض الشحن المجاني هذا الأسبوع</span>
+
             </div>
             <div id="product-offer" className="mt-6 scroll-mt-28">
               <OfferSelector product={product} />
