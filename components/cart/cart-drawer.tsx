@@ -420,8 +420,8 @@ function CheckoutModal({
 
   return (
     <div
-      className={`fixed inset-x-0 top-[var(--app-offset-top,0px)] z-[60] flex h-[var(--app-height,100dvh)] justify-center overflow-y-auto overscroll-contain bg-charcoal/55 p-3 sm:items-center sm:p-4 ${
-        isFieldFocused ? "items-start" : "items-end"
+      className={`fixed inset-x-0 top-[var(--app-offset-top,0px)] z-[60] flex h-[var(--app-height,100dvh)] justify-center overflow-y-auto overscroll-contain bg-charcoal/55 p-3 sm:p-4 ${
+        isFieldFocused ? "items-start" : "items-center"
       }`}
     >
       <div
