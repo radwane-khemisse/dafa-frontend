@@ -6,11 +6,10 @@ import { ReviewCard } from "@/components/product/review-card";
 import { StickyProductCta } from "@/components/product/sticky-product-cta";
 import { ProductViewTracker } from "@/components/tracking/product-view-tracker";
 import { ProductVisual } from "@/components/ui/product-visual";
-import { getCrossSells, getProductBySlug, products } from "@/data/products";
+import { getCrossSells, getProductBySlug } from "@/data/products";
+import { getCatalogVisibility, visibleProducts } from "@/lib/catalog-visibility";
 
-export function generateStaticParams() {
-  return products.map((product) => ({ slug: product.slug }));
-}
+export const dynamic = "force-dynamic";
 
 const shippingPaymentFaq = [
   {
@@ -31,7 +30,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const product = getProductBySlug(slug);
   if (!product) notFound();
-  const crossSells = getCrossSells([product.id]);
+  const visibility = await getCatalogVisibility();
+  if (visibility.hidden_products.includes(product.id)) notFound();
+  const crossSells = visibleProducts(getCrossSells([product.id]), visibility);
   const productFaq = product.faq.filter((item) => !item.question.includes("الدفع"));
 
   return (

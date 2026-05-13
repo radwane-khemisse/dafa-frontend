@@ -5,16 +5,17 @@ import Image from "next/image";
 import { AddPackButton } from "@/components/pack/pack-actions";
 import { ProductCard } from "@/components/product/product-card";
 import { packImages } from "@/components/ui/product-visual";
-import { getPackBySlug, getPackProducts, packs } from "@/data/packs";
+import { getPackBySlug, getPackProducts } from "@/data/packs";
+import { getCatalogVisibility } from "@/lib/catalog-visibility";
 
-export function generateStaticParams() {
-  return packs.map((pack) => ({ slug: pack.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function PackPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const pack = getPackBySlug(slug);
   if (!pack) notFound();
+  const visibility = await getCatalogVisibility();
+  if (visibility.hidden_packs.includes(pack.id) || pack.productIds.some((productId) => visibility.hidden_products.includes(productId))) notFound();
   const products = getPackProducts(pack);
   const saving = pack.compareAtPrice - pack.price;
 

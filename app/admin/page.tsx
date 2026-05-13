@@ -6,9 +6,11 @@ import {
   Banknote,
   CalendarDays,
   Eye,
+  EyeOff,
   Lock,
   MousePointerClick,
   PackageCheck,
+  RotateCcw,
   Search,
   ShoppingCart,
   TrendingUp,
@@ -78,6 +80,16 @@ type AdminOrder = {
   }>;
 };
 
+type CatalogItem = {
+  type: "product" | "pack";
+  id: string;
+  slug: string;
+  name_ar: string;
+  name_en: string;
+  hidden: boolean;
+  product_ids?: string[];
+};
+
 function isoDate(daysAgo: number) {
   const date = new Date();
   date.setDate(date.getDate() - daysAgo);
@@ -90,9 +102,10 @@ export default function AdminPage() {
   const [auth, setAuth] = useState("");
   const [start, setStart] = useState(isoDate(7));
   const [end, setEnd] = useState(isoDate(0));
-  const [activeTab, setActiveTab] = useState<"overview" | "orders">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "orders" | "catalog">("overview");
   const [data, setData] = useState<DashboardData | null>(null);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
+  const [catalog, setCatalog] = useState<{ products: CatalogItem[]; packs: CatalogItem[] }>({ products: [], packs: [] });
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -105,15 +118,18 @@ export default function AdminPage() {
     setError("");
     try {
       const query = buildQuery(start, end);
-      const [dashboardResponse, ordersResponse] = await Promise.all([
+      const [dashboardResponse, ordersResponse, catalogResponse] = await Promise.all([
         fetch(`${API_BASE_URL}/admin/dashboard?${query}`, { headers: { Authorization: `Basic ${nextAuth}` } }),
         fetch(`${API_BASE_URL}/admin/orders?${query}`, { headers: { Authorization: `Basic ${nextAuth}` } }),
+        fetch(`${API_BASE_URL}/admin/catalog`, { headers: { Authorization: `Basic ${nextAuth}` } }),
       ]);
-      if (!dashboardResponse.ok || !ordersResponse.ok) throw new Error("Login failed or admin API is not ready.");
+      if (!dashboardResponse.ok || !ordersResponse.ok || !catalogResponse.ok) throw new Error("Login failed or admin API is not ready.");
       const dashboardJson = (await dashboardResponse.json()) as DashboardData;
       const ordersJson = (await ordersResponse.json()) as { orders: AdminOrder[] };
+      const catalogJson = (await catalogResponse.json()) as { products: CatalogItem[]; packs: CatalogItem[] };
       setData(dashboardJson);
       setOrders(ordersJson.orders);
+      setCatalog(catalogJson);
     } catch (exc) {
       setError(exc instanceof Error ? exc.message : "Could not load dashboard.");
     } finally {
@@ -126,6 +142,27 @@ export default function AdminPage() {
     const nextAuth = btoa(`${username}:${password}`);
     setAuth(nextAuth);
     void loadDashboard(nextAuth);
+  }
+
+  async function updateCatalogItem(item: CatalogItem, hidden: boolean) {
+    if (!headers) return;
+    setError("");
+    setCatalog((current) => ({
+      products: current.products.map((product) => (product.type === item.type && product.id === item.id ? { ...product, hidden } : product)),
+      packs: current.packs.map((pack) => (pack.type === item.type && pack.id === item.id ? { ...pack, hidden } : pack)),
+    }));
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/catalog/${item.type}/${item.id}/visibility`, {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({ hidden }),
+      });
+      if (!response.ok) throw new Error("Could not update catalog visibility.");
+      void loadDashboard();
+    } catch (exc) {
+      setError(exc instanceof Error ? exc.message : "Could not update catalog visibility.");
+      void loadDashboard();
+    }
   }
 
   if (!auth || !data) {
@@ -172,11 +209,14 @@ export default function AdminPage() {
         <div className="mb-5 inline-flex rounded-lg border border-charcoal/10 bg-white p-1">
           <TabButton active={activeTab === "overview"} onClick={() => setActiveTab("overview")}>Overview</TabButton>
           <TabButton active={activeTab === "orders"} onClick={() => setActiveTab("orders")}>Orders</TabButton>
+          <TabButton active={activeTab === "catalog"} onClick={() => setActiveTab("catalog")}>Catalog</TabButton>
         </div>
 
         {error ? <p className="mb-5 rounded-lg bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{error}</p> : null}
 
-        {activeTab === "overview" ? <Overview data={data} /> : <OrdersTab orders={orders} onPreview={setSelectedOrder} />}
+        {activeTab === "overview" ? <Overview data={data} /> : null}
+        {activeTab === "orders" ? <OrdersTab orders={orders} onPreview={setSelectedOrder} /> : null}
+        {activeTab === "catalog" ? <CatalogTab catalog={catalog} onToggle={updateCatalogItem} /> : null}
       </div>
 
       {selectedOrder ? <OrderPreview order={selectedOrder} onClose={() => setSelectedOrder(null)} /> : null}
@@ -341,6 +381,53 @@ function OrdersTab({ orders, onPreview }: { orders: AdminOrder[]; onPreview: (or
           </tbody>
         </table>
         {filtered.length === 0 ? <EmptyState /> : null}
+      </div>
+    </div>
+  );
+}
+
+function CatalogTab({ catalog, onToggle }: { catalog: { products: CatalogItem[]; packs: CatalogItem[] }; onToggle: (item: CatalogItem, hidden: boolean) => void }) {
+  return (
+    <div className="grid gap-5 lg:grid-cols-2">
+      <CatalogList title="Products" items={catalog.products} onToggle={onToggle} />
+      <CatalogList title="Packs" items={catalog.packs} onToggle={onToggle} />
+    </div>
+  );
+}
+
+function CatalogList({ title, items, onToggle }: { title: string; items: CatalogItem[]; onToggle: (item: CatalogItem, hidden: boolean) => void }) {
+  return (
+    <div className="rounded-lg border border-charcoal/10 bg-white p-5 shadow-soft">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-lg font-black">{title}</h2>
+        <span className="rounded-full bg-warm-100 px-3 py-1 text-xs font-black text-charcoal/60">
+          {items.filter((item) => item.hidden).length} hidden
+        </span>
+      </div>
+      <div className="grid gap-3">
+        {items.length === 0 ? <EmptyState /> : null}
+        {items.map((item) => (
+          <div key={`${item.type}-${item.id}`} className="grid gap-3 rounded-lg border border-charcoal/10 p-4 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div className="min-w-0">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <span className={`rounded-full px-2 py-1 text-xs font-black ${item.hidden ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}>
+                  {item.hidden ? "Hidden" : "Visible"}
+                </span>
+                <span className="text-xs font-bold uppercase text-charcoal/45">{item.type}</span>
+              </div>
+              <p className="truncate font-black" dir="rtl">{item.name_ar}</p>
+              <p className="mt-1 truncate text-sm font-bold text-charcoal/55">{item.name_en}</p>
+              <p className="mt-1 text-xs text-charcoal/45">{item.id}</p>
+            </div>
+            <button
+              className={`focus-ring inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black ${item.hidden ? "bg-olive text-white" : "bg-charcoal text-white"}`}
+              onClick={() => onToggle(item, !item.hidden)}
+            >
+              {item.hidden ? <RotateCcw size={17} /> : <EyeOff size={17} />}
+              {item.hidden ? "Restore" : "Hide"}
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

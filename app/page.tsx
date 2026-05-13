@@ -6,8 +6,13 @@ import { ButtonLink } from "@/components/ui/button";
 import { KitchenHeroVisual } from "@/components/ui/product-visual";
 import { packs } from "@/data/packs";
 import { products } from "@/data/products";
+import { getCatalogVisibility, visiblePacks, visibleProducts } from "@/lib/catalog-visibility";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const visibility = await getCatalogVisibility();
+  const listedProducts = visibleProducts(products, visibility);
+  const listedPacks = visiblePacks(packs, visibility);
+
   return (
     <>
       <section className="bg-warm-100 py-8 sm:py-12 md:py-20">
@@ -63,7 +68,7 @@ export default function HomePage() {
             <ButtonLink href="/products" variant="outline">عرض كل المنتجات</ButtonLink>
           </div>
           <div className="grid gap-5 lg:grid-cols-3">
-            {products.map((product) => (
+            {listedProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
@@ -82,7 +87,7 @@ export default function HomePage() {
           <ButtonLink href="/packs" variant="outline">عرض كل الباقات</ButtonLink>
         </div>
         <div className="grid gap-5 xl:grid-cols-2">
-          {packs.map((pack) => (
+          {listedPacks.map((pack) => (
             <PackCard key={pack.id} pack={pack} />
           ))}
         </div>

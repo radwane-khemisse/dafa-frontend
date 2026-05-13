@@ -1,7 +1,11 @@
 import { ProductCard } from "@/components/product/product-card";
 import { products } from "@/data/products";
+import { getCatalogVisibility, visibleProducts } from "@/lib/catalog-visibility";
 
-export default function ProductsPage() {
+export default async function ProductsPage() {
+  const visibility = await getCatalogVisibility();
+  const listedProducts = visibleProducts(products, visibility);
+
   return (
     <>
       <section className="bg-warm-100 py-14">
@@ -14,7 +18,7 @@ export default function ProductsPage() {
         </div>
       </section>
       <section className="container-shell grid gap-5 py-16 lg:grid-cols-3">
-        {products.map((product) => (
+        {listedProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </section>

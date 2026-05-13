@@ -6,6 +6,17 @@ import { useEffect, useState, type ReactNode } from "react";
 import { products } from "@/data/products";
 
 export function Footer() {
+  const [hiddenProducts, setHiddenProducts] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"}/catalog/visibility`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((visibility: { hidden_products?: string[] } | null) => setHiddenProducts(visibility?.hidden_products ?? []))
+      .catch(() => setHiddenProducts([]));
+  }, []);
+
+  const visibleFooterProducts = products.filter((product) => !hiddenProducts.includes(product.id));
+
   return (
     <footer className="border-t border-charcoal/10 bg-olive text-white">
       <div className="container-shell grid gap-6 py-10 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:gap-10 md:py-12">
@@ -25,7 +36,7 @@ export function Footer() {
         </div>
 
         <FooterSection title="المنتجات">
-          {products.map((product) => (
+          {visibleFooterProducts.map((product) => (
             <Link key={product.id} href={`/products/${product.slug}`} className="hover:text-white">
               {product.nameAr}
             </Link>

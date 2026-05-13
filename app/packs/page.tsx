@@ -1,7 +1,11 @@
 import { PackCard } from "@/components/pack/pack-card";
 import { packs } from "@/data/packs";
+import { getCatalogVisibility, visiblePacks } from "@/lib/catalog-visibility";
 
-export default function PacksPage() {
+export default async function PacksPage() {
+  const visibility = await getCatalogVisibility();
+  const listedPacks = visiblePacks(packs, visibility);
+
   return (
     <main className="bg-warm-50 py-14">
       <section className="container-shell">
@@ -15,7 +19,7 @@ export default function PacksPage() {
           </p>
         </div>
         <div className="grid gap-5 xl:grid-cols-2">
-          {packs.map((pack) => (
+          {listedPacks.map((pack) => (
             <PackCard key={pack.id} pack={pack} />
           ))}
         </div>
