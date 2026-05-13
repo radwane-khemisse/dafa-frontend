@@ -420,7 +420,7 @@ function CheckoutModal({
 
   return (
     <div
-      className={`fixed inset-x-0 top-[var(--app-offset-top,0px)] z-[60] flex h-[var(--app-height,100dvh)] justify-center overflow-y-auto overscroll-contain bg-charcoal/55 p-3 sm:p-4 ${
+      className={`fixed inset-x-0 top-[var(--app-offset-top,0px)] z-[60] flex h-[var(--app-height,100dvh)] justify-center overflow-y-auto overscroll-contain bg-charcoal/55 p-3 backdrop-blur-md sm:p-4 ${
         isFieldFocused ? "items-start" : "items-center"
       }`}
     >
@@ -564,7 +564,7 @@ function UpsellModal({
   }, [isSubmitting, skipOffer]);
 
   return (
-    <div className="fixed inset-0 z-[70] flex h-[var(--app-height,100dvh)] items-end justify-center overflow-y-auto overscroll-contain bg-charcoal/60 p-3 sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-[70] flex h-[var(--app-height,100dvh)] items-center justify-center overflow-y-auto overscroll-contain bg-charcoal/60 p-3 backdrop-blur-md sm:p-4">
       <div className="max-h-[calc(var(--app-height,100dvh)-1.5rem)] w-full max-w-xl overflow-y-auto rounded-3xl bg-white p-4 shadow-soft sm:max-h-[calc(var(--app-height,100dvh)-2rem)] sm:p-5">
         <div className="text-center">
           <p className="text-sm font-black text-gold">فرصة قبل تجهيز الشحنة</p>

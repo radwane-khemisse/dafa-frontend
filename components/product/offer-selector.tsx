@@ -46,9 +46,7 @@ export function OfferSelector({ product, compact = false }: { product: Product; 
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-black">اختاري العرض الأنسب لبيتك</p>
-          <p className="text-xs text-charcoal/60">كل ما زادت الكمية، قل سعر القطعة. والدفع عند الاستلام.</p>
         </div>
-        <span className="rounded-full bg-warm-100 px-3 py-1 text-xs font-black text-date">كل ما زادت الكمية قل سعر القطعة</span>
       </div>
 
       <div className="grid gap-4 pt-2">
