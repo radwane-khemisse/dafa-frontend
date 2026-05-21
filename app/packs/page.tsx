@@ -1,12 +1,12 @@
 import { PackCard } from "@/components/pack/pack-card";
 import { packs } from "@/data/packs";
-import { getCatalogVisibility, visiblePacks } from "@/lib/catalog-visibility";
+import { applyPackPrices, getCatalogVisibility, visiblePacks } from "@/lib/catalog-visibility";
 import { notFound } from "next/navigation";
 
 export default async function PacksPage() {
   const visibility = await getCatalogVisibility();
   if (!visibility.market.active) notFound();
-  const listedPacks = visiblePacks(packs, visibility);
+  const listedPacks = visiblePacks(applyPackPrices(packs, visibility), visibility);
 
   return (
     <main className="bg-warm-50 py-14">

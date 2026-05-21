@@ -5,19 +5,19 @@ import Image from "next/image";
 import { AddPackButton } from "@/components/pack/pack-actions";
 import { ProductCard } from "@/components/product/product-card";
 import { packImages } from "@/components/ui/product-visual";
-import { getPackBySlug } from "@/data/packs";
+import { getPackBySlug, packs } from "@/data/packs";
 import { products as allProducts } from "@/data/products";
-import { applyOfferPrices, getCatalogVisibility } from "@/lib/catalog-visibility";
+import { applyOfferPrices, applyPackPrices, getCatalogVisibility } from "@/lib/catalog-visibility";
 import { getCurrentMarket } from "@/lib/market-server";
-import { prefixMarketHref } from "@/lib/markets";
+import { formatMarketPrice, prefixMarketHref } from "@/lib/markets";
 
 export const dynamic = "force-dynamic";
 
 export default async function PackPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const pack = getPackBySlug(slug);
-  if (!pack) notFound();
   const visibility = await getCatalogVisibility();
+  const pack = applyPackPrices(packs, visibility).find((item) => item.slug === slug) ?? getPackBySlug(slug);
+  if (!pack) notFound();
   if (!visibility.market.active) notFound();
   if (visibility.hidden_packs.includes(pack.id) || pack.productIds.some((productId) => visibility.hidden_products.includes(productId))) notFound();
   const products = applyOfferPrices(allProducts, visibility).filter((product) => pack.productIds.includes(product.id));
@@ -74,11 +74,11 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
           <PackageCheck className="text-gold" size={34} />
           <p className="mt-4 text-sm font-black text-gold">عرض الباقة</p>
           <div className="mt-2 flex items-end gap-3">
-            <p className="text-4xl font-black">{pack.price} ريال</p>
-            <p className="pb-1 text-sm font-bold text-white/45 line-through">{pack.compareAtPrice} ريال</p>
+            <p className="text-4xl font-black">{formatMarketPrice(pack.price, market)}</p>
+            <p className="pb-1 text-sm font-bold text-white/45 line-through">{formatMarketPrice(pack.compareAtPrice, market)}</p>
           </div>
           <p className="mt-3 rounded-2xl bg-white/10 p-4 text-sm font-black leading-7 text-white/82">
-            توفرين {saving} ريال وتستلمين المنتجين في نفس الطلب بدل طلبين منفصلين.
+            توفرين {formatMarketPrice(saving, market)} وتستلمين المنتجين في نفس الطلب بدل طلبين منفصلين.
           </p>
           <AddPackButton pack={pack} className="mt-5 w-full" />
           <div className="mt-5 grid gap-3 text-sm font-bold text-white/76">

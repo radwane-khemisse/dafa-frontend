@@ -6,7 +6,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { KitchenHeroVisual } from "@/components/ui/product-visual";
 import { packs } from "@/data/packs";
 import { products } from "@/data/products";
-import { applyOfferPrices, getCatalogVisibility, visiblePacks, visibleProducts } from "@/lib/catalog-visibility";
+import { applyOfferPrices, applyPackPrices, getCatalogVisibility, visiblePacks, visibleProducts } from "@/lib/catalog-visibility";
 import { notFound } from "next/navigation";
 
 export default async function HomePage() {
@@ -14,7 +14,7 @@ export default async function HomePage() {
   if (!visibility.market.active) notFound();
   const marketProducts = applyOfferPrices(products, visibility);
   const listedProducts = visibleProducts(marketProducts, visibility);
-  const listedPacks = visiblePacks(packs, visibility);
+  const listedPacks = visiblePacks(applyPackPrices(packs, visibility), visibility);
 
   return (
     <>

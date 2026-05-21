@@ -10,6 +10,7 @@ export type CatalogVisibility = {
   hidden_products: string[];
   hidden_packs: string[];
   offer_prices: Record<string, Record<string, number>>;
+  pack_prices: Record<string, number>;
 };
 
 const defaultVisibility: CatalogVisibility = {
@@ -17,6 +18,7 @@ const defaultVisibility: CatalogVisibility = {
   hidden_products: [],
   hidden_packs: [],
   offer_prices: {},
+  pack_prices: {},
 };
 
 export async function getCatalogVisibility(): Promise<CatalogVisibility> {
@@ -24,12 +26,13 @@ export async function getCatalogVisibility(): Promise<CatalogVisibility> {
   try {
     const response = await fetch(`${API_BASE_URL}/catalog/visibility?market=${encodeURIComponent(market.code)}`, { cache: "no-store" });
     if (!response.ok) return { ...defaultVisibility, market };
-    const payload = (await response.json()) as { market?: ApiMarket; hidden_products?: string[]; hidden_packs?: string[]; offer_prices?: Record<string, Record<string, number>> };
+    const payload = (await response.json()) as { market?: ApiMarket; hidden_products?: string[]; hidden_packs?: string[]; offer_prices?: Record<string, Record<string, number>>; pack_prices?: Record<string, number> };
     return {
       market: mergeApiMarket(payload.market),
       hidden_products: payload.hidden_products ?? [],
       hidden_packs: payload.hidden_packs ?? [],
       offer_prices: payload.offer_prices ?? {},
+      pack_prices: payload.pack_prices ?? {},
     };
   } catch {
     return { ...defaultVisibility, market };
@@ -43,6 +46,13 @@ export function applyOfferPrices(allProducts: Product[], visibility: CatalogVisi
       ...offer,
       price: visibility.offer_prices[product.id]?.[offer.id] ?? offer.price,
     })),
+  }));
+}
+
+export function applyPackPrices(allPacks: Pack[], visibility: CatalogVisibility) {
+  return allPacks.map((pack) => ({
+    ...pack,
+    price: visibility.pack_prices[pack.id] ?? pack.price,
   }));
 }
 

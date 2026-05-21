@@ -91,6 +91,7 @@ type CatalogItem = {
   market_codes: string[];
   product_ids?: string[];
   offers?: AdminOffer[];
+  prices?: Record<string, number>;
 };
 
 type AdminOffer = {
@@ -261,6 +262,28 @@ export default function AdminPage() {
     }
   }
 
+  async function updatePackPrice(item: CatalogItem, marketCode: string, price: number) {
+    if (!headers || item.type !== "pack" || !Number.isFinite(price) || price < 0) return;
+    setCatalog((current) => ({
+      ...current,
+      packs: current.packs.map((pack) =>
+        pack.id === item.id ? { ...pack, prices: { ...pack.prices, [marketCode]: price } } : pack,
+      ),
+    }));
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/catalog/packs/${item.id}/prices`, {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({ market_code: marketCode, price }),
+      });
+      if (!response.ok) throw new Error("Could not update pack price.");
+      void loadDashboard();
+    } catch (exc) {
+      setError(exc instanceof Error ? exc.message : "Could not update pack price.");
+      void loadDashboard();
+    }
+  }
+
   if (!auth || !data) {
     return (
       <section dir="ltr" className="min-h-[70vh] bg-[#F6F4EC] px-4 py-12 text-charcoal">
@@ -314,7 +337,7 @@ export default function AdminPage() {
         {activeTab === "overview" ? <Overview data={data} /> : null}
         {activeTab === "orders" ? <OrdersTab orders={orders} onPreview={setSelectedOrder} /> : null}
         {activeTab === "markets" ? <MarketsTab markets={catalog.markets} onUpdate={updateMarket} /> : null}
-        {activeTab === "catalog" ? <CatalogTab catalog={catalog} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} /> : null}
+        {activeTab === "catalog" ? <CatalogTab catalog={catalog} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} onPackPriceChange={updatePackPrice} /> : null}
       </div>
 
       {selectedOrder ? <OrderPreview order={selectedOrder} onClose={() => setSelectedOrder(null)} /> : null}
@@ -525,16 +548,18 @@ function CatalogTab({
   onToggle,
   onMarketToggle,
   onOfferPriceChange,
+  onPackPriceChange,
 }: {
   catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
   onToggle: (item: CatalogItem, hidden: boolean) => void;
   onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
   onOfferPriceChange: (item: CatalogItem, offer: AdminOffer, marketCode: string, price: number) => void;
+  onPackPriceChange: (item: CatalogItem, marketCode: string, price: number) => void;
 }) {
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <CatalogList title="Products" items={catalog.products} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} />
-      <CatalogList title="Packs" items={catalog.packs} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} />
+      <CatalogList title="Products" items={catalog.products} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} />
+      <CatalogList title="Packs" items={catalog.packs} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} />
     </div>
   );
 }
@@ -546,6 +571,7 @@ function CatalogList({
   onToggle,
   onMarketToggle,
   onOfferPriceChange,
+  onPackPriceChange,
 }: {
   title: string;
   items: CatalogItem[];
@@ -553,6 +579,7 @@ function CatalogList({
   onToggle: (item: CatalogItem, hidden: boolean) => void;
   onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
   onOfferPriceChange: (item: CatalogItem, offer: AdminOffer, marketCode: string, price: number) => void;
+  onPackPriceChange: (item: CatalogItem, marketCode: string, price: number) => void;
 }) {
   return (
     <div className="rounded-lg border border-charcoal/10 bg-white p-5 shadow-soft">
@@ -621,6 +648,25 @@ function CatalogList({
                       ))}
                     </tbody>
                   </table>
+                </div>
+              ) : null}
+              {item.prices ? (
+                <div className="mt-4 rounded-lg border border-charcoal/10 p-3">
+                  <p className="mb-2 text-xs font-black uppercase text-charcoal/50">Pack prices</p>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {markets.map((market) => (
+                      <label key={market.code} className="grid gap-1 text-xs font-black uppercase text-charcoal/55">
+                        {market.code}
+                        <input
+                          className="focus-ring h-9 rounded-lg border border-charcoal/10 px-2 font-black"
+                          type="number"
+                          min={0}
+                          defaultValue={item.prices?.[market.code] ?? 0}
+                          onBlur={(event) => onPackPriceChange(item, market.code, Number(event.target.value))}
+                        />
+                      </label>
+                    ))}
+                  </div>
                 </div>
               ) : null}
             </div>
