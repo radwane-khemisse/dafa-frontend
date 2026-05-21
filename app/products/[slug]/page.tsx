@@ -6,8 +6,8 @@ import { ReviewCard } from "@/components/product/review-card";
 import { StickyProductCta } from "@/components/product/sticky-product-cta";
 import { ProductViewTracker } from "@/components/tracking/product-view-tracker";
 import { ProductVisual } from "@/components/ui/product-visual";
-import { getCrossSells, getProductBySlug } from "@/data/products";
-import { getCatalogVisibility, visibleProducts } from "@/lib/catalog-visibility";
+import { products } from "@/data/products";
+import { applyOfferPrices, getCatalogVisibility, visibleProducts } from "@/lib/catalog-visibility";
 
 export const dynamic = "force-dynamic";
 
@@ -28,12 +28,13 @@ const shippingPaymentFaq = [
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
-  if (!product) notFound();
   const visibility = await getCatalogVisibility();
+  const marketProducts = applyOfferPrices(products, visibility);
+  const product = marketProducts.find((item) => item.slug === slug);
+  if (!product) notFound();
   if (!visibility.market.active) notFound();
   if (visibility.hidden_products.includes(product.id)) notFound();
-  const crossSells = visibleProducts(getCrossSells([product.id]), visibility);
+  const crossSells = visibleProducts(marketProducts.filter((item) => item.id !== product.id), visibility);
   const productFaq = product.faq.filter((item) => !item.question.includes("الدفع"));
 
   return (

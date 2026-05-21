@@ -90,6 +90,14 @@ type CatalogItem = {
   hidden: boolean;
   market_codes: string[];
   product_ids?: string[];
+  offers?: AdminOffer[];
+};
+
+type AdminOffer = {
+  id: string;
+  label_ar: string;
+  quantity: number;
+  prices: Record<string, number>;
 };
 
 type MarketConfig = {
@@ -223,6 +231,36 @@ export default function AdminPage() {
     }
   }
 
+  async function updateOfferPrice(item: CatalogItem, offer: AdminOffer, marketCode: string, price: number) {
+    if (!headers || item.type !== "product" || !Number.isFinite(price) || price < 0) return;
+    setCatalog((current) => ({
+      ...current,
+      products: current.products.map((product) => {
+        if (product.id !== item.id) return product;
+        return {
+          ...product,
+          offers: product.offers?.map((currentOffer) =>
+            currentOffer.id === offer.id
+              ? { ...currentOffer, prices: { ...currentOffer.prices, [marketCode]: price } }
+              : currentOffer,
+          ),
+        };
+      }),
+    }));
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/catalog/products/${item.id}/offers/${offer.id}/prices`, {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({ market_code: marketCode, price }),
+      });
+      if (!response.ok) throw new Error("Could not update offer price.");
+      void loadDashboard();
+    } catch (exc) {
+      setError(exc instanceof Error ? exc.message : "Could not update offer price.");
+      void loadDashboard();
+    }
+  }
+
   if (!auth || !data) {
     return (
       <section dir="ltr" className="min-h-[70vh] bg-[#F6F4EC] px-4 py-12 text-charcoal">
@@ -276,7 +314,7 @@ export default function AdminPage() {
         {activeTab === "overview" ? <Overview data={data} /> : null}
         {activeTab === "orders" ? <OrdersTab orders={orders} onPreview={setSelectedOrder} /> : null}
         {activeTab === "markets" ? <MarketsTab markets={catalog.markets} onUpdate={updateMarket} /> : null}
-        {activeTab === "catalog" ? <CatalogTab catalog={catalog} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} /> : null}
+        {activeTab === "catalog" ? <CatalogTab catalog={catalog} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} /> : null}
       </div>
 
       {selectedOrder ? <OrderPreview order={selectedOrder} onClose={() => setSelectedOrder(null)} /> : null}
@@ -486,15 +524,17 @@ function CatalogTab({
   catalog,
   onToggle,
   onMarketToggle,
+  onOfferPriceChange,
 }: {
   catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
   onToggle: (item: CatalogItem, hidden: boolean) => void;
   onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
+  onOfferPriceChange: (item: CatalogItem, offer: AdminOffer, marketCode: string, price: number) => void;
 }) {
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <CatalogList title="Products" items={catalog.products} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} />
-      <CatalogList title="Packs" items={catalog.packs} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} />
+      <CatalogList title="Products" items={catalog.products} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} />
+      <CatalogList title="Packs" items={catalog.packs} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} />
     </div>
   );
 }
@@ -505,12 +545,14 @@ function CatalogList({
   markets,
   onToggle,
   onMarketToggle,
+  onOfferPriceChange,
 }: {
   title: string;
   items: CatalogItem[];
   markets: MarketConfig[];
   onToggle: (item: CatalogItem, hidden: boolean) => void;
   onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
+  onOfferPriceChange: (item: CatalogItem, offer: AdminOffer, marketCode: string, price: number) => void;
 }) {
   return (
     <div className="rounded-lg border border-charcoal/10 bg-white p-5 shadow-soft">
@@ -546,6 +588,41 @@ function CatalogList({
                   </label>
                 ))}
               </div>
+              {item.offers?.length ? (
+                <div className="mt-4 overflow-x-auto rounded-lg border border-charcoal/10">
+                  <table className="w-full min-w-[560px] border-collapse text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-charcoal/10 bg-warm-50 text-charcoal/55">
+                        <th className="px-3 py-2">Offer</th>
+                        {markets.map((market) => (
+                          <th key={market.code} className="px-3 py-2 uppercase">{market.code}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {item.offers.map((offer) => (
+                        <tr key={offer.id} className="border-b border-charcoal/10 last:border-0">
+                          <td className="px-3 py-2 font-black">
+                            <span dir="rtl">{offer.label_ar}</span>
+                            <span className="block text-[11px] font-bold text-charcoal/45">{offer.id} / qty {offer.quantity}</span>
+                          </td>
+                          {markets.map((market) => (
+                            <td key={`${offer.id}-${market.code}`} className="px-3 py-2">
+                              <input
+                                className="focus-ring h-9 w-20 rounded-lg border border-charcoal/10 px-2 font-black"
+                                type="number"
+                                min={0}
+                                defaultValue={offer.prices[market.code] ?? 0}
+                                onBlur={(event) => onOfferPriceChange(item, offer, market.code, Number(event.target.value))}
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
             </div>
             <button
               className={`focus-ring inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black ${item.hidden ? "bg-olive text-white" : "bg-charcoal text-white"}`}

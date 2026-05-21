@@ -15,6 +15,7 @@ export function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem);
   const market = useCurrentMarket();
   const defaultOffer = product.offers.find((offer) => offer.badge) ?? product.offers[0];
+  const startingPrice = Math.min(...product.offers.map((offer) => offer.price));
 
   function addDefaultOffer() {
     const item = makeCartItem(product, defaultOffer.id);
@@ -69,7 +70,7 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="mt-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-xs text-charcoal/50">العروض تبدأ من</p>
-            <p className="text-2xl font-black">{formatMarketPrice(199, market)}</p>
+            <p className="text-2xl font-black">{formatMarketPrice(startingPrice, market)}</p>
           </div>
           <div className="grid shrink-0 gap-2">
             <Button onClick={addDefaultOffer} variant="gold" className="px-4">

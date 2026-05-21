@@ -5,8 +5,9 @@ import Image from "next/image";
 import { AddPackButton } from "@/components/pack/pack-actions";
 import { ProductCard } from "@/components/product/product-card";
 import { packImages } from "@/components/ui/product-visual";
-import { getPackBySlug, getPackProducts } from "@/data/packs";
-import { getCatalogVisibility } from "@/lib/catalog-visibility";
+import { getPackBySlug } from "@/data/packs";
+import { products as allProducts } from "@/data/products";
+import { applyOfferPrices, getCatalogVisibility } from "@/lib/catalog-visibility";
 import { getCurrentMarket } from "@/lib/market-server";
 import { prefixMarketHref } from "@/lib/markets";
 
@@ -19,7 +20,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
   const visibility = await getCatalogVisibility();
   if (!visibility.market.active) notFound();
   if (visibility.hidden_packs.includes(pack.id) || pack.productIds.some((productId) => visibility.hidden_products.includes(productId))) notFound();
-  const products = getPackProducts(pack);
+  const products = applyOfferPrices(allProducts, visibility).filter((product) => pack.productIds.includes(product.id));
   const saving = pack.compareAtPrice - pack.price;
   const market = await getCurrentMarket();
 
