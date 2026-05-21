@@ -24,7 +24,7 @@ type PhoneRule = {
 
 const phoneRules: Record<string, PhoneRule> = {
   ksa: { localPattern: /^5\d{8}$/, example: "05XXXXXXXX", prefixes: "5 أو 05 أو 9665", localLength: 9 },
-  kwt: { localPattern: /^(?:41|5|6|9)\d{6}$/, example: "5XXXXXXX", prefixes: "41 أو 5 أو 6 أو 9", localLength: 8 },
+  kwt: { localPattern: /^(?:41\d{6}|[569]\d{7})$/, example: "5XXXXXXX", prefixes: "41 أو 5 أو 6 أو 9", localLength: 8 },
   uae: { localPattern: /^5\d{8}$/, example: "05XXXXXXXX", prefixes: "05 أو 9715", localLength: 9 },
   qat: { localPattern: /^[3567]\d{7}$/, example: "5XXXXXXX", prefixes: "3 أو 5 أو 6 أو 7", localLength: 8 },
   bhr: { localPattern: /^3\d{7}$/, example: "3XXXXXXX", prefixes: "3", localLength: 8 },
