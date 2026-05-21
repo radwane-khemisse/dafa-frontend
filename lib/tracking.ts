@@ -175,7 +175,7 @@ export function trackEvent(eventName: CanonicalTrackingEvent, payload: TrackingP
   const contentIds = payload.contentIds || (payload.productId ? [payload.productId] : undefined);
   const pixelPayload = {
     value: payload.value,
-    currency: payload.currency || "SAR",
+    currency: payload.currency || "ريال",
     content_ids: contentIds,
     contents: payload.items?.map((item) => ({
       id: item.product_id,
@@ -237,7 +237,7 @@ function trackServerEvent(eventName: CanonicalTrackingEvent, payload: TrackingPa
     content_ids: payload.contentIds || [],
     items: payload.items || [],
     value: payload.value,
-    currency: payload.currency || "SAR",
+    currency: payload.currency || "ريال",
     name: payload.name,
     phone: payload.phone,
     metadata: payload.metadata,

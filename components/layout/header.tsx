@@ -24,6 +24,8 @@ export function Header() {
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
   const pathSegments = pathname.split("/").filter(Boolean);
   const isMarketHome = pathSegments.length === 0 || (pathSegments.length === 1 && marketCodes.includes(pathSegments[0] as (typeof marketCodes)[number]));
+  const isAdminRoute = pathSegments[0] === "admin" || (marketCodes.includes(pathSegments[0] as (typeof marketCodes)[number]) && pathSegments[1] === "admin");
+  const showMarketSwitcher = !isMarketHome && !isAdminRoute;
 
   return (
     <header className="sticky top-0 z-40 border-b border-charcoal/10 bg-warm-50/95 backdrop-blur">
@@ -46,7 +48,7 @@ export function Header() {
           ))}
         </nav>
 
-        {!isMarketHome ? (
+        {showMarketSwitcher ? (
           <div className="hidden items-center gap-1 rounded-lg border border-charcoal/10 bg-white p-1 text-xs font-black uppercase lg:flex">
             {marketCodes.map((code) => (
               <Link
@@ -98,7 +100,7 @@ export function Header() {
               {link.label}
             </Link>
           ))}
-          {!isMarketHome ? (
+          {showMarketSwitcher ? (
             <div className="grid grid-cols-3 gap-2">
               {marketCodes.map((code) => (
                 <Link

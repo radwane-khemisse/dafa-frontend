@@ -180,7 +180,7 @@ export default function AdminPage() {
 
   async function updateMarket(market: MarketConfig, next: Partial<Pick<MarketConfig, "active" | "currency">>) {
     if (!headers) return;
-    const updated = { ...market, ...next, currency: (next.currency ?? market.currency).toUpperCase() };
+    const updated = { ...market, ...next, currency: (next.currency ?? market.currency).trim() };
     setCatalog((current) => ({
       ...current,
       markets: current.markets.map((item) => (item.code === market.code ? updated : item)),
@@ -315,11 +315,11 @@ function Overview({ data }: { data: DashboardData }) {
         <Metric icon={Eye} label="Visitors" value={data.metrics.visitors.toLocaleString()} />
         <Metric icon={MousePointerClick} label="Clicks" value={data.metrics.clicks.toLocaleString()} />
         <Metric icon={PackageCheck} label="Orders" value={data.metrics.orders.toLocaleString()} />
-        <Metric icon={Banknote} label="Revenue" value={`${data.metrics.revenue.toLocaleString()} SAR`} />
+        <Metric icon={Banknote} label="Revenue" value={data.metrics.revenue.toLocaleString()} />
         <Metric icon={TrendingUp} label="Conversion rate" value={`${data.metrics.conversion_rate}%`} />
         <Metric icon={ShoppingCart} label="Cart rate" value={`${data.metrics.cart_rate}%`} />
         <Metric icon={Activity} label="Checkout rate" value={`${data.metrics.checkout_rate}%`} />
-        <Metric icon={Banknote} label="AOV" value={`${data.metrics.aov.toLocaleString()} SAR`} />
+        <Metric icon={Banknote} label="AOV" value={data.metrics.aov.toLocaleString()} />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1.4fr_0.8fr]">
@@ -332,7 +332,7 @@ function Overview({ data }: { data: DashboardData }) {
                 <span className="h-3 overflow-hidden rounded-full bg-warm-100">
                   <span className="block h-full rounded-full bg-gold" style={{ width: `${Math.max((row.revenue / maxRevenue) * 100, row.revenue ? 8 : 0)}%` }} />
                 </span>
-                <span className="text-right font-black">{row.revenue} SAR</span>
+                <span className="text-right font-black">{row.revenue}</span>
               </div>
             ))}
           </div>
@@ -348,7 +348,7 @@ function Overview({ data }: { data: DashboardData }) {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <SimpleTable title="Top products" rows={data.top_products.map((item) => [item.title, `${item.orders} orders`, `${item.revenue} SAR`])} />
+        <SimpleTable title="Top products" rows={data.top_products.map((item) => [item.title, `${item.orders} orders`, `${item.revenue}`])} />
         <SimpleTable title="Top campaigns" rows={data.top_campaigns.map((item) => [item.campaign, `${item.visitors} visitors`, `${item.events} events`])} />
       </div>
     </div>
@@ -471,9 +471,8 @@ function MarketsTab({ markets, onUpdate }: { markets: MarketConfig[]; onUpdate: 
           <label className="grid gap-1 text-xs font-black uppercase text-charcoal/55">
             Currency
             <input
-              className="focus-ring h-11 rounded-lg border border-charcoal/10 px-3 text-sm font-black uppercase"
+              className="focus-ring h-11 rounded-lg border border-charcoal/10 px-3 text-sm font-black"
               value={market.currency}
-              maxLength={3}
               onChange={(event) => onUpdate(market, { currency: event.target.value })}
             />
           </label>
@@ -584,9 +583,9 @@ function OrderPreview({ order, onClose }: { order: AdminOrder; onClose: () => vo
                       <p className="font-black" dir="rtl">{item.title_ar}</p>
                       <p className="text-sm text-charcoal/55">{item.product_id} / {item.offer_id}</p>
                     </div>
-                    <p className="font-black">{item.total_price} SAR</p>
+                    <p className="font-black">{item.total_price} {order.currency}</p>
                   </div>
-                  <p className="mt-2 text-sm text-charcoal/60">Qty {item.quantity} x {item.unit_price} SAR</p>
+                  <p className="mt-2 text-sm text-charcoal/60">Qty {item.quantity} x {item.unit_price} {order.currency}</p>
                 </div>
               ))}
             </div>
@@ -598,12 +597,12 @@ function OrderPreview({ order, onClose }: { order: AdminOrder; onClose: () => vo
               <SummaryRow label="Status" value={order.status} />
               <SummaryRow label="Payment" value={order.payment_method} />
               <SummaryRow label="Upsell" value={order.upsell_accepted ? "Accepted" : "No"} />
-              <SummaryRow label="Location" value={[order.city, order.country].filter(Boolean).join(", ") || "KSA valid"} />
+              <SummaryRow label="Location" value={[order.city, order.country].filter(Boolean).join(", ") || order.market_code || "-"} />
               <SummaryRow label="Campaign" value={order.utm_campaign || "direct"} />
               <SummaryRow label="Source" value={order.utm_source || "-"} />
-              <SummaryRow label="Subtotal" value={`${order.subtotal} SAR`} />
-              <SummaryRow label="Delivery" value={`${order.delivery_fee} SAR`} />
-              <SummaryRow label="Discount" value={`${order.discount} SAR`} />
+              <SummaryRow label="Subtotal" value={`${order.subtotal} ${order.currency}`} />
+              <SummaryRow label="Delivery" value={`${order.delivery_fee} ${order.currency}`} />
+              <SummaryRow label="Discount" value={`${order.discount} ${order.currency}`} />
               <div className="mt-2 flex justify-between border-t border-charcoal/10 pt-3 text-lg font-black">
                 <dt>Total</dt>
                 <dd>{order.total} {order.currency}</dd>
