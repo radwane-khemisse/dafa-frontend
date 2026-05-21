@@ -6,10 +6,13 @@ import type { Pack } from "@/data/packs";
 import { getPackProducts } from "@/data/packs";
 import { createEventId } from "@/lib/event-id";
 import { trackEvent } from "@/lib/tracking";
+import { formatMarketPrice } from "@/lib/markets";
+import { useCurrentMarket } from "@/lib/market-client";
 import { makePackCartItems, useCartStore } from "@/store/cart-store";
 
 export function AddPackButton({ pack, className = "" }: { pack: Pack; className?: string }) {
   const addItems = useCartStore((state) => state.addItems);
+  const market = useCurrentMarket();
   const products = getPackProducts(pack);
 
   function handleAddPack() {
@@ -19,7 +22,7 @@ export function AddPackButton({ pack, className = "" }: { pack: Pack; className?
     trackEvent("AddToCart", {
       eventId: createEventId("pack_atc"),
       value: pack.price,
-      currency: "SAR",
+      currency: market.currency,
       contentIds: products.map((product) => product.id),
       contentName: pack.nameAr,
       items: items.map((item) => ({
@@ -36,7 +39,7 @@ export function AddPackButton({ pack, className = "" }: { pack: Pack; className?
   return (
     <Button onClick={handleAddPack} variant="gold" className={className}>
       <ShoppingCart size={18} />
-      أضيفي المنتجين - {pack.price} ريال
+      أضيفي المنتجين - {formatMarketPrice(pack.price, market)}
     </Button>
   );
 }

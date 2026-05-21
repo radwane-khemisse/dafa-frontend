@@ -61,6 +61,7 @@ type AdminOrder = {
   discount: number;
   total: number;
   currency: string;
+  market_code?: string;
   payment_method: string;
   upsell_accepted: boolean;
   source_url?: string;
@@ -87,7 +88,18 @@ type CatalogItem = {
   name_ar: string;
   name_en: string;
   hidden: boolean;
+  market_codes: string[];
   product_ids?: string[];
+};
+
+type MarketConfig = {
+  code: string;
+  country_code: string;
+  country_name_ar: string;
+  country_name_en: string;
+  active: boolean;
+  currency: string;
+  market_code: string;
 };
 
 function isoDate(daysAgo: number) {
@@ -102,10 +114,10 @@ export default function AdminPage() {
   const [auth, setAuth] = useState("");
   const [start, setStart] = useState(isoDate(7));
   const [end, setEnd] = useState(isoDate(0));
-  const [activeTab, setActiveTab] = useState<"overview" | "orders" | "catalog">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "orders" | "markets" | "catalog">("overview");
   const [data, setData] = useState<DashboardData | null>(null);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
-  const [catalog, setCatalog] = useState<{ products: CatalogItem[]; packs: CatalogItem[] }>({ products: [], packs: [] });
+  const [catalog, setCatalog] = useState<{ markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] }>({ markets: [], products: [], packs: [] });
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -126,7 +138,7 @@ export default function AdminPage() {
       if (!dashboardResponse.ok || !ordersResponse.ok || !catalogResponse.ok) throw new Error("Login failed or admin API is not ready.");
       const dashboardJson = (await dashboardResponse.json()) as DashboardData;
       const ordersJson = (await ordersResponse.json()) as { orders: AdminOrder[] };
-      const catalogJson = (await catalogResponse.json()) as { products: CatalogItem[]; packs: CatalogItem[] };
+      const catalogJson = (await catalogResponse.json()) as { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
       setData(dashboardJson);
       setOrders(ordersJson.orders);
       setCatalog(catalogJson);
@@ -148,6 +160,7 @@ export default function AdminPage() {
     if (!headers) return;
     setError("");
     setCatalog((current) => ({
+      ...current,
       products: current.products.map((product) => (product.type === item.type && product.id === item.id ? { ...product, hidden } : product)),
       packs: current.packs.map((pack) => (pack.type === item.type && pack.id === item.id ? { ...pack, hidden } : pack)),
     }));
@@ -161,6 +174,51 @@ export default function AdminPage() {
       void loadDashboard();
     } catch (exc) {
       setError(exc instanceof Error ? exc.message : "Could not update catalog visibility.");
+      void loadDashboard();
+    }
+  }
+
+  async function updateMarket(market: MarketConfig, next: Partial<Pick<MarketConfig, "active" | "currency">>) {
+    if (!headers) return;
+    const updated = { ...market, ...next, currency: (next.currency ?? market.currency).toUpperCase() };
+    setCatalog((current) => ({
+      ...current,
+      markets: current.markets.map((item) => (item.code === market.code ? updated : item)),
+    }));
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/markets/${market.code}`, {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({ active: updated.active, currency: updated.currency }),
+      });
+      if (!response.ok) throw new Error("Could not update market.");
+      void loadDashboard();
+    } catch (exc) {
+      setError(exc instanceof Error ? exc.message : "Could not update market.");
+      void loadDashboard();
+    }
+  }
+
+  async function updateCatalogMarkets(item: CatalogItem, marketCode: string, checked: boolean) {
+    if (!headers) return;
+    const nextMarketCodes = checked
+      ? Array.from(new Set([...item.market_codes, marketCode]))
+      : item.market_codes.filter((code) => code !== marketCode);
+    setCatalog((current) => ({
+      ...current,
+      products: current.products.map((product) => (product.type === item.type && product.id === item.id ? { ...product, market_codes: nextMarketCodes } : product)),
+      packs: current.packs.map((pack) => (pack.type === item.type && pack.id === item.id ? { ...pack, market_codes: nextMarketCodes } : pack)),
+    }));
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/catalog/${item.type}/${item.id}/markets`, {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({ market_codes: nextMarketCodes }),
+      });
+      if (!response.ok) throw new Error("Could not update market visibility.");
+      void loadDashboard();
+    } catch (exc) {
+      setError(exc instanceof Error ? exc.message : "Could not update market visibility.");
       void loadDashboard();
     }
   }
@@ -209,6 +267,7 @@ export default function AdminPage() {
         <div className="mb-5 inline-flex rounded-lg border border-charcoal/10 bg-white p-1">
           <TabButton active={activeTab === "overview"} onClick={() => setActiveTab("overview")}>Overview</TabButton>
           <TabButton active={activeTab === "orders"} onClick={() => setActiveTab("orders")}>Orders</TabButton>
+          <TabButton active={activeTab === "markets"} onClick={() => setActiveTab("markets")}>Markets</TabButton>
           <TabButton active={activeTab === "catalog"} onClick={() => setActiveTab("catalog")}>Catalog</TabButton>
         </div>
 
@@ -216,7 +275,8 @@ export default function AdminPage() {
 
         {activeTab === "overview" ? <Overview data={data} /> : null}
         {activeTab === "orders" ? <OrdersTab orders={orders} onPreview={setSelectedOrder} /> : null}
-        {activeTab === "catalog" ? <CatalogTab catalog={catalog} onToggle={updateCatalogItem} /> : null}
+        {activeTab === "markets" ? <MarketsTab markets={catalog.markets} onUpdate={updateMarket} /> : null}
+        {activeTab === "catalog" ? <CatalogTab catalog={catalog} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} /> : null}
       </div>
 
       {selectedOrder ? <OrderPreview order={selectedOrder} onClose={() => setSelectedOrder(null)} /> : null}
@@ -252,7 +312,7 @@ function Overview({ data }: { data: DashboardData }) {
   return (
     <div className="grid gap-6">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Metric icon={Eye} label="Valid KSA visitors" value={data.metrics.visitors.toLocaleString()} />
+        <Metric icon={Eye} label="Visitors" value={data.metrics.visitors.toLocaleString()} />
         <Metric icon={MousePointerClick} label="Clicks" value={data.metrics.clicks.toLocaleString()} />
         <Metric icon={PackageCheck} label="Orders" value={data.metrics.orders.toLocaleString()} />
         <Metric icon={Banknote} label="Revenue" value={`${data.metrics.revenue.toLocaleString()} SAR`} />
@@ -360,6 +420,7 @@ function OrdersTab({ orders, onPreview }: { orders: AdminOrder[]; onPreview: (or
               <th>Status</th>
               <th>Items</th>
               <th>Total</th>
+              <th>Market</th>
               <th>Campaign</th>
               <th>Date</th>
               <th></th>
@@ -373,6 +434,7 @@ function OrdersTab({ orders, onPreview }: { orders: AdminOrder[]; onPreview: (or
                 <td><span className="rounded-full bg-warm-100 px-2 py-1 text-xs font-black">{order.status}</span></td>
                 <td>{order.items.reduce((sum, item) => sum + item.quantity, 0)}</td>
                 <td className="font-black">{order.total} {order.currency}</td>
+                <td className="font-black uppercase">{order.market_code || order.country || "ksa"}</td>
                 <td>{order.utm_campaign || "direct"}</td>
                 <td>{new Date(order.created_at).toLocaleDateString()}</td>
                 <td><button className="focus-ring rounded-lg bg-charcoal px-3 py-2 text-xs font-black text-white" onClick={() => onPreview(order)}>Preview</button></td>
@@ -386,16 +448,71 @@ function OrdersTab({ orders, onPreview }: { orders: AdminOrder[]; onPreview: (or
   );
 }
 
-function CatalogTab({ catalog, onToggle }: { catalog: { products: CatalogItem[]; packs: CatalogItem[] }; onToggle: (item: CatalogItem, hidden: boolean) => void }) {
+function MarketsTab({ markets, onUpdate }: { markets: MarketConfig[]; onUpdate: (market: MarketConfig, next: Partial<Pick<MarketConfig, "active" | "currency">>) => void }) {
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
-      <CatalogList title="Products" items={catalog.products} onToggle={onToggle} />
-      <CatalogList title="Packs" items={catalog.packs} onToggle={onToggle} />
+    <div className="grid gap-4 lg:grid-cols-2">
+      {markets.map((market) => (
+        <div key={market.code} className="rounded-lg border border-charcoal/10 bg-white p-5 shadow-soft">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase text-olive">/{market.code}</p>
+              <h2 className="text-xl font-black">{market.country_name_en}</h2>
+              <p className="text-sm font-bold text-charcoal/55" dir="rtl">{market.country_name_ar}</p>
+            </div>
+            <label className="flex items-center gap-2 text-sm font-black">
+              <input
+                type="checkbox"
+                checked={market.active}
+                onChange={(event) => onUpdate(market, { active: event.target.checked })}
+              />
+              Active
+            </label>
+          </div>
+          <label className="grid gap-1 text-xs font-black uppercase text-charcoal/55">
+            Currency
+            <input
+              className="focus-ring h-11 rounded-lg border border-charcoal/10 px-3 text-sm font-black uppercase"
+              value={market.currency}
+              maxLength={3}
+              onChange={(event) => onUpdate(market, { currency: event.target.value })}
+            />
+          </label>
+        </div>
+      ))}
     </div>
   );
 }
 
-function CatalogList({ title, items, onToggle }: { title: string; items: CatalogItem[]; onToggle: (item: CatalogItem, hidden: boolean) => void }) {
+function CatalogTab({
+  catalog,
+  onToggle,
+  onMarketToggle,
+}: {
+  catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
+  onToggle: (item: CatalogItem, hidden: boolean) => void;
+  onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
+}) {
+  return (
+    <div className="grid gap-5 lg:grid-cols-2">
+      <CatalogList title="Products" items={catalog.products} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} />
+      <CatalogList title="Packs" items={catalog.packs} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} />
+    </div>
+  );
+}
+
+function CatalogList({
+  title,
+  items,
+  markets,
+  onToggle,
+  onMarketToggle,
+}: {
+  title: string;
+  items: CatalogItem[];
+  markets: MarketConfig[];
+  onToggle: (item: CatalogItem, hidden: boolean) => void;
+  onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
+}) {
   return (
     <div className="rounded-lg border border-charcoal/10 bg-white p-5 shadow-soft">
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -418,6 +535,18 @@ function CatalogList({ title, items, onToggle }: { title: string; items: Catalog
               <p className="truncate font-black" dir="rtl">{item.name_ar}</p>
               <p className="mt-1 truncate text-sm font-bold text-charcoal/55">{item.name_en}</p>
               <p className="mt-1 text-xs text-charcoal/45">{item.id}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {markets.map((market) => (
+                  <label key={market.code} className="inline-flex items-center gap-2 rounded-lg bg-warm-50 px-2 py-1 text-xs font-black uppercase">
+                    <input
+                      type="checkbox"
+                      checked={item.market_codes.includes(market.code)}
+                      onChange={(event) => onMarketToggle(item, market.code, event.target.checked)}
+                    />
+                    {market.code}
+                  </label>
+                ))}
+              </div>
             </div>
             <button
               className={`focus-ring inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black ${item.hidden ? "bg-olive text-white" : "bg-charcoal text-white"}`}
@@ -497,5 +626,5 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 }
 
 function EmptyState() {
-  return <p className="rounded-lg bg-warm-50 px-4 py-5 text-center text-sm font-bold text-charcoal/55">No valid KSA data in this range.</p>;
+  return <p className="rounded-lg bg-warm-50 px-4 py-5 text-center text-sm font-bold text-charcoal/55">No data in this range.</p>;
 }

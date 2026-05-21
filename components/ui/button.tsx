@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { prefixMarketHref } from "@/lib/markets";
+import { useCurrentMarket } from "@/lib/market-client";
 
 const variants = {
   primary: "bg-charcoal text-white hover:bg-date",
@@ -32,9 +36,11 @@ export function ButtonLink({
   className?: string;
   variant?: keyof typeof variants;
 }) {
+  const market = useCurrentMarket();
+
   return (
     <Link
-      href={href}
+      href={prefixMarketHref(href, market)}
       className={`focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-bold transition ${variants[variant]} ${className}`}
     >
       {children}

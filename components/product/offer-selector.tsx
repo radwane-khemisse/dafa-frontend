@@ -7,8 +7,11 @@ import { Button } from "@/components/ui/button";
 import { makeCartItem, useCartStore } from "@/store/cart-store";
 import { createEventId } from "@/lib/event-id";
 import { trackEvent } from "@/lib/tracking";
+import { formatMarketPrice } from "@/lib/markets";
+import { useCurrentMarket } from "@/lib/market-client";
 
 export function OfferSelector({ product, compact = false }: { product: Product; compact?: boolean }) {
+  const market = useCurrentMarket();
   const defaultOffer = product.offers.find((candidate) => candidate.badge) ?? product.offers[0];
   const [selectedOffer, setSelectedOffer] = useState<OfferId>(defaultOffer.id);
   const addItem = useCartStore((state) => state.addItem);
@@ -24,7 +27,7 @@ export function OfferSelector({ product, compact = false }: { product: Product; 
       {
         eventId,
         value: item.totalPrice,
-        currency: "SAR",
+        currency: market.currency,
         contentIds: [product.id],
         contentName: product.nameAr,
         productId: product.id,
@@ -89,9 +92,9 @@ export function OfferSelector({ product, compact = false }: { product: Product; 
                 </span>
               </span>
               <span className="text-start">
-                <span className="block text-lg font-black">{candidate.price} ريال</span>
+                <span className="block text-lg font-black">{formatMarketPrice(candidate.price, market)}</span>
                 <span className="mt-1 block text-xs font-black text-discount">
-                  {discount > 0 ? `وفرتِ ${discount} ريال` : ""}
+                  {discount > 0 ? `وفرتِ ${formatMarketPrice(discount, market)}` : ""}
                 </span>
               </span>
             </button>
@@ -101,7 +104,7 @@ export function OfferSelector({ product, compact = false }: { product: Product; 
 
       <Button onClick={handleAdd} className="mt-5 w-full text-base" variant="gold">
         <ShoppingCart size={18} />
-        أضيفي للسلة - {offer.price} ريال
+        أضيفي للسلة - {formatMarketPrice(offer.price, market)}
       </Button>
       
     </div>

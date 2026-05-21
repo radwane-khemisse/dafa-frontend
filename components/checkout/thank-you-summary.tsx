@@ -18,6 +18,8 @@ import { getCrossSells, getProductById } from "@/data/products";
 import { ProductCard } from "@/components/product/product-card";
 import type { CartItem } from "@/store/cart-store";
 import { ProductVisual } from "@/components/ui/product-visual";
+import { formatMarketPrice, prefixMarketHref } from "@/lib/markets";
+import { useCurrentMarket } from "@/lib/market-client";
 
 type LastOrderSnapshot = {
   orderId?: string;
@@ -47,6 +49,7 @@ const trustReviews = [
 ];
 
 export function ThankYouSummary({ fallbackOrderId, fallbackTotal }: { fallbackOrderId: string; fallbackTotal?: string }) {
+  const market = useCurrentMarket();
   const [snapshot, setSnapshot] = useState<LastOrderSnapshot | null>(null);
   const [callMessage, setCallMessage] = useState("");
 
@@ -102,7 +105,7 @@ export function ThankYouSummary({ fallbackOrderId, fallbackTotal }: { fallbackOr
               <p className="text-sm font-black text-olive">ملخص الطلب</p>
               <h2 className="mt-1 text-2xl font-black">{snapshot?.orderId || fallbackOrderId}</h2>
             </div>
-            {total ? <p className="rounded-xl bg-warm-50 px-4 py-2 text-xl font-black">{total} ريال</p> : null}
+            {total ? <p className="rounded-xl bg-warm-50 px-4 py-2 text-xl font-black">{formatMarketPrice(total, market)}</p> : null}
           </div>
 
           <div className="mb-5 grid gap-3 md:grid-cols-2">
@@ -124,11 +127,11 @@ export function ThankYouSummary({ fallbackOrderId, fallbackTotal }: { fallbackOr
                     <div className="min-w-0">
                       <p className="font-black leading-7">{item.titleAr}</p>
                       <p className="mt-1 text-sm font-bold text-charcoal/58">الكمية: {item.quantity}</p>
-                      <p className="mt-1 text-sm text-charcoal/50">سعر القطعة: {item.unitPrice} ريال</p>
+                      <p className="mt-1 text-sm text-charcoal/50">سعر القطعة: {formatMarketPrice(item.unitPrice, market)}</p>
                     </div>
                     <div className="col-span-2 rounded-lg bg-white px-3 py-2 text-start sm:col-span-1 sm:min-w-28 sm:text-center">
                       <p className="text-xs font-bold text-charcoal/50">الإجمالي</p>
-                      <p className="text-xl font-black">{item.totalPrice} ريال</p>
+                      <p className="text-xl font-black">{formatMarketPrice(item.totalPrice, market)}</p>
                     </div>
                   </div>
                 );
@@ -209,7 +212,7 @@ export function ThankYouSummary({ fallbackOrderId, fallbackTotal }: { fallbackOr
             {suggestedProducts.length ? (
               suggestedProducts.map((product) => <ProductCard key={product.id} product={product} />)
             ) : (
-              <Link href="/products" className="focus-ring rounded-xl bg-warm-50 p-5 text-center font-black text-date">
+              <Link href={prefixMarketHref("/products", market)} className="focus-ring rounded-xl bg-warm-50 p-5 text-center font-black text-date">
                 عرض كل المنتجات
               </Link>
             )}

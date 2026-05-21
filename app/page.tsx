@@ -7,9 +7,11 @@ import { KitchenHeroVisual } from "@/components/ui/product-visual";
 import { packs } from "@/data/packs";
 import { products } from "@/data/products";
 import { getCatalogVisibility, visiblePacks, visibleProducts } from "@/lib/catalog-visibility";
+import { notFound } from "next/navigation";
 
 export default async function HomePage() {
   const visibility = await getCatalogVisibility();
+  if (!visibility.market.active) notFound();
   const listedProducts = visibleProducts(products, visibility);
   const listedPacks = visiblePacks(packs, visibility);
 

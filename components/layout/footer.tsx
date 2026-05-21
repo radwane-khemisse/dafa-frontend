@@ -4,16 +4,19 @@ import Link from "next/link";
 import { ChevronDown, CookingPot, PhoneCall, ShieldCheck, Truck } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { products } from "@/data/products";
+import { prefixMarketHref } from "@/lib/markets";
+import { useCurrentMarket } from "@/lib/market-client";
 
 export function Footer() {
   const [hiddenProducts, setHiddenProducts] = useState<string[]>([]);
+  const market = useCurrentMarket();
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"}/catalog/visibility`)
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"}/catalog/visibility?market=${market.code}`)
       .then((response) => (response.ok ? response.json() : null))
       .then((visibility: { hidden_products?: string[] } | null) => setHiddenProducts(visibility?.hidden_products ?? []))
       .catch(() => setHiddenProducts([]));
-  }, []);
+  }, [market.code]);
 
   const visibleFooterProducts = products.filter((product) => !hiddenProducts.includes(product.id));
 
@@ -37,18 +40,18 @@ export function Footer() {
 
         <FooterSection title="المنتجات">
           {visibleFooterProducts.map((product) => (
-            <Link key={product.id} href={`/products/${product.slug}`} className="hover:text-white">
+            <Link key={product.id} href={prefixMarketHref(`/products/${product.slug}`, market)} className="hover:text-white">
               {product.nameAr}
             </Link>
           ))}
         </FooterSection>
 
         <FooterSection title="روابط مهمة">
-          <Link href="/about" className="hover:text-white">من نحن</Link>
-          <Link href="/contact" className="hover:text-white">تواصل معنا</Link>
-          <Link href="/delivery" className="hover:text-white">سياسة التوصيل</Link>
-          <Link href="/returns" className="hover:text-white">الاستبدال والاسترجاع</Link>
-          <Link href="/privacy" className="hover:text-white">الخصوصية</Link>
+          <Link href={prefixMarketHref("/about", market)} className="hover:text-white">من نحن</Link>
+          <Link href={prefixMarketHref("/contact", market)} className="hover:text-white">تواصل معنا</Link>
+          <Link href={prefixMarketHref("/delivery", market)} className="hover:text-white">سياسة التوصيل</Link>
+          <Link href={prefixMarketHref("/returns", market)} className="hover:text-white">الاستبدال والاسترجاع</Link>
+          <Link href={prefixMarketHref("/privacy", market)} className="hover:text-white">الخصوصية</Link>
         </FooterSection>
 
         <FooterSection title="الثقة والطلب">

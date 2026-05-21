@@ -12,6 +12,41 @@ export function normalizeKsaPhone(input: string): NormalizedPhone | null {
   return result.ok ? result.phone : null;
 }
 
+export function validateGulfPhone(
+  input: string,
+  market: { code: string; countryNameEn: string; phoneCountryCode: string; localPhoneDigits: number },
+): PhoneValidationResult {
+  if (market.code === "ksa") return validateKsaPhone(input);
+
+  let digits = input.replace(/\D/g, "");
+  if (!digits) {
+    return { ok: false, message: `Enter a valid ${market.countryNameEn} mobile number.` };
+  }
+
+  const prefix = market.phoneCountryCode;
+  if (digits.startsWith(`00${prefix}`)) {
+    digits = digits.slice(2);
+  }
+  if (digits.startsWith(`${prefix}0`)) {
+    digits = `${prefix}${digits.slice(prefix.length + 1)}`;
+  } else if (digits.startsWith("0") && digits.length === market.localPhoneDigits + 1) {
+    digits = `${prefix}${digits.slice(1)}`;
+  } else if (digits.length === market.localPhoneDigits) {
+    digits = `${prefix}${digits}`;
+  }
+
+  const local = digits.slice(prefix.length);
+  if (!digits.startsWith(prefix) || local.length !== market.localPhoneDigits || !/^\d+$/.test(local)) {
+    return { ok: false, message: `Enter a valid ${market.countryNameEn} mobile number.` };
+  }
+
+  if (new Set(local.split("")).size <= 2) {
+    return { ok: false, message: "Phone number appears invalid." };
+  }
+
+  return { ok: true, phone: { e164: `+${digits}`, digits } };
+}
+
 export function validateKsaPhone(input: string): PhoneValidationResult {
   let digits = input.replace(/\D/g, "");
 

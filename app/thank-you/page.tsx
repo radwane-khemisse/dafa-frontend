@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { CheckCircle2, Clock3, PhoneCall, ShieldCheck } from "lucide-react";
 import { ThankYouSummary } from "@/components/checkout/thank-you-summary";
+import { getCurrentMarket } from "@/lib/market-server";
+import { formatMarketPrice } from "@/lib/markets";
 
 export default async function ThankYouPage({
   searchParams,
@@ -10,6 +12,7 @@ export default async function ThankYouPage({
   const params = await searchParams;
   const order = params.order ?? "طلبك";
   const total = params.total ?? "";
+  const market = await getCurrentMarket();
 
   return (
     <section className="bg-warm-50">
@@ -43,7 +46,7 @@ export default async function ThankYouPage({
             {total ? (
               <div className="mt-4 flex items-center justify-between rounded-xl bg-[#FFF7E4] px-4 py-3">
                 <span className="font-black text-date">المبلغ عند الاستلام</span>
-                <span className="text-2xl font-black text-charcoal">{total} ريال</span>
+                <span className="text-2xl font-black text-charcoal">{formatMarketPrice(total, market)}</span>
               </div>
             ) : null}
             <div className="mt-4 rounded-xl border border-gold/35 bg-warm-50 p-4">

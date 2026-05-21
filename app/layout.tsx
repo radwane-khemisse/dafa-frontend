@@ -8,6 +8,7 @@ import { CartDrawer } from "@/components/cart/cart-drawer";
 import { PixelScripts } from "@/components/tracking/pixel-scripts";
 import { AnalyticsTracker } from "@/components/tracking/analytics-tracker";
 import { TrustTicker } from "@/components/layout/trust-ticker";
+import { MarketContentRewriter } from "@/components/market/market-content-rewriter";
 
 const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
   subsets: ["arabic", "latin"],
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         className={`${ibmPlexSansArabic.variable} ${notoSansArabic.variable} ${bricolageGrotesque.variable} flex min-h-screen flex-col`}
       >
         <PixelScripts />
+        <MarketContentRewriter />
         <Suspense fallback={null}>
           <AnalyticsTracker />
         </Suspense>

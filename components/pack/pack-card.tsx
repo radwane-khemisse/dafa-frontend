@@ -4,11 +4,15 @@ import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { AddPackButton } from "@/components/pack/pack-actions";
 import { packImages } from "@/components/ui/product-visual";
 import type { Pack } from "@/data/packs";
+import { formatMarketPrice, prefixMarketHref } from "@/lib/markets";
+import { getCurrentMarket } from "@/lib/market-server";
 
-export function PackCard({ pack }: { pack: Pack }) {
+export async function PackCard({ pack }: { pack: Pack }) {
+  const market = await getCurrentMarket();
+
   return (
     <article className="overflow-hidden rounded-3xl border border-charcoal/10 bg-white shadow-soft">
-      <Link href={`/packs/${pack.slug}`} className="relative block aspect-[8/5] bg-warm-50">
+      <Link href={prefixMarketHref(`/packs/${pack.slug}`, market)} className="relative block aspect-[8/5] bg-warm-50">
         <Image
           src={packImages[pack.id]}
           alt={pack.nameAr}
@@ -36,12 +40,12 @@ export function PackCard({ pack }: { pack: Pack }) {
         <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-xs font-bold text-charcoal/50">سعر المنتجين معا</p>
-            <p className="text-2xl font-black">{pack.price} ريال</p>
-            <p className="text-xs font-bold text-charcoal/45 line-through">{pack.compareAtPrice} ريال منفردة</p>
+            <p className="text-2xl font-black">{formatMarketPrice(pack.price, market)}</p>
+            <p className="text-xs font-bold text-charcoal/45 line-through">{formatMarketPrice(pack.compareAtPrice, market)} منفردة</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Link
-              href={`/packs/${pack.slug}`}
+              href={prefixMarketHref(`/packs/${pack.slug}`, market)}
               className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-charcoal/15 bg-white/70 px-4 py-3 text-sm font-bold transition hover:bg-white"
             >
               شوفي التفاصيل

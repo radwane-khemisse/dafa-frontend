@@ -31,6 +31,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const product = getProductBySlug(slug);
   if (!product) notFound();
   const visibility = await getCatalogVisibility();
+  if (!visibility.market.active) notFound();
   if (visibility.hidden_products.includes(product.id)) notFound();
   const crossSells = visibleProducts(getCrossSells([product.id]), visibility);
   const productFaq = product.faq.filter((item) => !item.question.includes("الدفع"));

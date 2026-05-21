@@ -1,5 +1,6 @@
 import type { CartItem } from "@/store/cart-store";
 import { collectAttribution } from "@/lib/tracking";
+import type { Market } from "@/lib/markets";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
@@ -9,6 +10,7 @@ export type CreateOrderInput = {
   phone: string;
   items: CartItem[];
   upsellAccepted: boolean;
+  market: Market;
 };
 
 export async function createOrder(input: CreateOrderInput) {
@@ -18,6 +20,7 @@ export async function createOrder(input: CreateOrderInput) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      market_code: input.market.code,
       event_id: input.eventId,
       name: input.name,
       phone: input.phone,
@@ -40,7 +43,7 @@ export async function createOrder(input: CreateOrderInput) {
         delivery_fee: 0,
         discount: 0,
         total: subtotal,
-        currency: "SAR",
+        currency: input.market.currency,
       },
       client: collectAttribution(),
     }),

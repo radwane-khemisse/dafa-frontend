@@ -7,6 +7,8 @@ import { ProductCard } from "@/components/product/product-card";
 import { packImages } from "@/components/ui/product-visual";
 import { getPackBySlug, getPackProducts } from "@/data/packs";
 import { getCatalogVisibility } from "@/lib/catalog-visibility";
+import { getCurrentMarket } from "@/lib/market-server";
+import { prefixMarketHref } from "@/lib/markets";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +17,11 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
   const pack = getPackBySlug(slug);
   if (!pack) notFound();
   const visibility = await getCatalogVisibility();
+  if (!visibility.market.active) notFound();
   if (visibility.hidden_packs.includes(pack.id) || pack.productIds.some((productId) => visibility.hidden_products.includes(productId))) notFound();
   const products = getPackProducts(pack);
   const saving = pack.compareAtPrice - pack.price;
+  const market = await getCurrentMarket();
 
   return (
     <main className="bg-warm-50">
@@ -97,7 +101,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
             <p className="text-sm font-black text-olive">داخل الباقة</p>
             <h2 className="mt-1 text-3xl font-black">المنتجات المشمولة</h2>
           </div>
-          <Link href="/products" className="focus-ring inline-flex items-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-black">
+          <Link href={prefixMarketHref("/products", market)} className="focus-ring inline-flex items-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-black">
             عرض كل المنتجات
             <ArrowLeft size={16} />
           </Link>

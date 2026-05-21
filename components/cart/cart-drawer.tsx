@@ -10,22 +10,16 @@ import { getCrossSells, getProductById, type Product } from "@/data/products";
 import { Button } from "@/components/ui/button";
 import { createOrder } from "@/lib/api";
 import { createEventId } from "@/lib/event-id";
-import { validateKsaPhone } from "@/lib/phone";
+import { validateGulfPhone } from "@/lib/phone";
 import { trackEvent } from "@/lib/tracking";
+import { formatMarketPrice, prefixMarketHref, type Market } from "@/lib/markets";
+import { useCurrentMarket } from "@/lib/market-client";
 import { makeCartItem, useCartStore, type CartItem } from "@/store/cart-store";
 import { ProductVisual } from "@/components/ui/product-visual";
 
 const checkoutSchema = z.object({
   name: z.string().trim().min(2, "اكتبي الاسم بشكل صحيح"),
-  phone: z.string().superRefine((value, ctx) => {
-    const result = validateKsaPhone(value);
-    if (!result.ok) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: result.message,
-      });
-    }
-  }),
+  phone: z.string().trim().min(6, "اكتبي رقم الجوال"),
 });
 
 type CheckoutValues = z.infer<typeof checkoutSchema>;
@@ -70,6 +64,7 @@ function getCartDisplayGroups(items: CartItem[]): CartDisplayGroup[] {
 
 export function CartDrawer() {
   const router = useRouter();
+  const market = useCurrentMarket();
   const { items, isCartOpen, closeCart, removeItem, removePack, addItem, clearCart } = useCartStore();
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
   const [pendingCustomer, setPendingCustomer] = useState<CheckoutValues | null>(null);
@@ -116,7 +111,7 @@ export function CartDrawer() {
     trackEvent("AddToCart", {
       eventId: createEventId("atc"),
       value: item.totalPrice,
-      currency: "SAR",
+      currency: market.currency,
       productId: product.id,
       contentIds: [product.id],
       contentName: product.nameAr,
@@ -139,7 +134,7 @@ export function CartDrawer() {
     trackEvent("InitiateCheckout", {
       eventId,
       value: total,
-      currency: "SAR",
+      currency: market.currency,
       contentIds: productIds,
       items: trackingItems,
     });
@@ -149,7 +144,7 @@ export function CartDrawer() {
     if (isSubmitting) return;
     setSubmitting(true);
     try {
-      const phoneValidation = validateKsaPhone(values.phone);
+      const phoneValidation = validateGulfPhone(values.phone, market);
       if (!phoneValidation.ok) throw new Error(phoneValidation.message);
       const normalized = phoneValidation.phone;
       const itemsForOrder = [...useCartStore.getState().items, ...upsellItems];
@@ -163,6 +158,7 @@ export function CartDrawer() {
         phone: normalized.e164,
         items: itemsForOrder,
         upsellAccepted: acceptedUpsell,
+        market,
       });
 
       const finalItems = itemsForOrder;
@@ -183,7 +179,7 @@ export function CartDrawer() {
       trackEvent("Purchase", {
         eventId: response.purchase_event_id,
         value: finalTotal,
-        currency: "SAR",
+        currency: market.currency,
         contentIds: finalItems.map((item) => item.productId),
         items: finalItems.map((item) => ({
           product_id: item.productId,
@@ -198,7 +194,7 @@ export function CartDrawer() {
         metadata: { order_id: response.order_id },
       });
       clearCart();
-      router.push(`/thank-you?order=${encodeURIComponent(response.order_id)}&total=${finalTotal}`);
+      router.push(`${prefixMarketHref("/thank-you", market)}?order=${encodeURIComponent(response.order_id)}&total=${finalTotal}`);
     } catch (error) {
       alert(error instanceof Error ? error.message : "تعذر تأكيد الطلب، حاولي مرة أخرى.");
     } finally {
@@ -270,7 +266,7 @@ export function CartDrawer() {
                       <Trash2 size={18} />
                     </button>
                   </div>
-                  <p className="mt-3 text-lg font-black">{group.totalPrice} ريال</p>
+                  <p className="mt-3 text-lg font-black">{formatMarketPrice(group.totalPrice, market)}</p>
                 </div>
                 );
               })}
@@ -306,7 +302,7 @@ export function CartDrawer() {
         <div className="shrink-0 border-t border-charcoal/10 bg-white p-4 sm:p-5">
           <div className="mb-4 flex items-center justify-between text-lg font-black">
             <span>الإجمالي</span>
-            <span>{total} ريال</span>
+            <span>{formatMarketPrice(total, market)}</span>
           </div>
           <Button disabled={items.length === 0} onClick={startCheckout} className="w-full" variant="gold">
             إتمام الطلب
@@ -316,6 +312,7 @@ export function CartDrawer() {
 
       {isCheckoutOpen ? (
         <CheckoutModal
+          market={market}
           groups={cartGroups}
           total={total}
           isSubmitting={isSubmitting}
@@ -324,7 +321,7 @@ export function CartDrawer() {
             trackEvent("Lead", {
               eventId: createEventId("lead"),
               value: total,
-              currency: "SAR",
+              currency: market.currency,
               contentIds: productIds,
               items: trackingItems,
               name: values.name,
@@ -343,13 +340,14 @@ export function CartDrawer() {
 
       {isUpsellOpen && pendingCustomer && upsellOptions.length > 0 ? (
         <UpsellModal
+          market={market}
           products={upsellOptions}
           isSubmitting={isSubmitting}
           onAccept={(selectedProducts) => {
             trackEvent("UpsellAccepted", {
               eventId: createEventId("upsell_accept"),
               value: 99,
-              currency: "SAR",
+              currency: market.currency,
               productId: selectedProducts[0]?.id,
               contentIds: selectedProducts.map((product) => product.id),
               name: pendingCustomer.name,
@@ -366,7 +364,7 @@ export function CartDrawer() {
             trackEvent("UpsellRejected", {
               eventId: createEventId("upsell_reject"),
               value: total,
-              currency: "SAR",
+              currency: market.currency,
               contentIds: productIds,
               items: trackingItems,
               name: pendingCustomer.name,
@@ -381,12 +379,14 @@ export function CartDrawer() {
 }
 
 function CheckoutModal({
+  market,
   groups,
   total,
   isSubmitting,
   onClose,
   onSubmit,
 }: {
+  market: Market;
   groups: CartDisplayGroup[];
   total: number;
   isSubmitting: boolean;
@@ -450,7 +450,7 @@ function CheckoutModal({
                   <span className="font-bold">{group.title}</span>
                   <span className="flex shrink-0 items-center gap-3 text-xs font-black text-charcoal/60">
                     <span>{group.packId ? "باقة" : `x${group.items[0].quantity}`}</span>
-                    <span className="text-sm text-charcoal">{group.totalPrice} ريال</span>
+                    <span className="text-sm text-charcoal">{formatMarketPrice(group.totalPrice, market)}</span>
                     <span className="hidden">
                     </span>
                   </span>
@@ -460,7 +460,7 @@ function CheckoutModal({
           </div>
           <div className="flex items-center justify-between font-black">
             <span>الإجمالي عند الاستلام</span>
-            <span>{total} ريال</span>
+            <span>{formatMarketPrice(total, market)}</span>
           </div>
           <p className="mt-2 flex items-center gap-2 text-xs font-bold text-olive">
             <ShieldCheck size={14} /> نحجز الكمية للطلبات المؤكدة فقط.
@@ -505,11 +505,13 @@ function CheckoutModal({
 }
 
 function UpsellModal({
+  market,
   products,
   isSubmitting,
   onAccept,
   onSkip,
 }: {
+  market: Market;
   products: Product[];
   isSubmitting: boolean;
   onAccept: (products: Product[]) => void;
@@ -538,7 +540,7 @@ function UpsellModal({
     trackEvent("UpsellView", {
       eventId: createEventId("upsell_view"),
       value: 99,
-      currency: "SAR",
+      currency: market.currency,
       productId: upsellProduct.id,
       contentIds: [upsellProduct.id],
       contentName: upsellProduct.nameAr,
@@ -568,7 +570,7 @@ function UpsellModal({
       <div className="max-h-[calc(var(--app-height,100dvh)-1.5rem)] w-full max-w-xl overflow-y-auto rounded-3xl bg-white p-4 shadow-soft sm:max-h-[calc(var(--app-height,100dvh)-2rem)] sm:p-5">
         <div className="text-center">
           <p className="text-sm font-black text-gold">فرصة قبل تجهيز الشحنة</p>
-          <h2 className="mt-2 text-2xl font-black">أضيفي منتج مكمل بـ 99 ريال فقط</h2>
+          <h2 className="mt-2 text-2xl font-black">أضيفي منتج مكمل بـ {formatMarketPrice(99, market)} فقط</h2>
           <p className="mt-3 text-sm leading-7 text-charcoal/65">نضيفه لنفس الطلب ونؤكده معك في نفس المكالمة، بدون طلب جديد أو شحنة ثانية.</p>
         </div>
 
@@ -595,7 +597,7 @@ function UpsellModal({
                   <span className="block font-black">{upsellProduct.nameAr}</span>
                   <span className="mt-1 block text-sm font-black text-date">سعر خاص لأنه مع نفس الطلب</span>
                 </span>
-                <span className="shrink-0 rounded-xl bg-gold px-4 py-2 text-sm font-black text-charcoal">99 ريال</span>
+                <span className="shrink-0 rounded-xl bg-gold px-4 py-2 text-sm font-black text-charcoal">{formatMarketPrice(99, market)}</span>
               </span>
             </div>
           </div>
@@ -603,7 +605,7 @@ function UpsellModal({
 
         <div className="grid gap-3">
           <Button onClick={acceptOffer} disabled={isSubmitting || !upsellProduct} variant="gold" className="w-full">
-            أضيفيه مع طلبي بـ 99 ريال
+            أضيفيه مع طلبي بـ {formatMarketPrice(99, market)}
           </Button>
           <Button onClick={skipOffer} disabled={isSubmitting} variant="outline" className="w-full">
             لا، أكملي طلبي الحالي

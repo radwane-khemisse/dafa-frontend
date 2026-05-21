@@ -1,9 +1,11 @@
 import { ProductCard } from "@/components/product/product-card";
 import { products } from "@/data/products";
 import { getCatalogVisibility, visibleProducts } from "@/lib/catalog-visibility";
+import { notFound } from "next/navigation";
 
 export default async function ProductsPage() {
   const visibility = await getCatalogVisibility();
+  if (!visibility.market.active) notFound();
   const listedProducts = visibleProducts(products, visibility);
 
   return (
