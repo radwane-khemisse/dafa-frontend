@@ -10,7 +10,7 @@ import { getCrossSells, getProductById, type Product } from "@/data/products";
 import { Button } from "@/components/ui/button";
 import { createOrder } from "@/lib/api";
 import { createEventId } from "@/lib/event-id";
-import { validateGulfPhone } from "@/lib/phone";
+import { phoneExampleForMarket, validateGulfPhone } from "@/lib/phone";
 import { trackEvent } from "@/lib/tracking";
 import { formatMarketPrice, prefixMarketHref, type Market } from "@/lib/markets";
 import { useCurrentMarket } from "@/lib/market-client";
@@ -398,8 +398,19 @@ function CheckoutModal({
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<CheckoutValues>({ resolver: zodResolver(checkoutSchema) });
+  const phoneExample = phoneExampleForMarket(market.code);
+
+  function submitWithPhoneValidation(values: CheckoutValues) {
+    const phoneValidation = validateGulfPhone(values.phone, market);
+    if (!phoneValidation.ok) {
+      setError("phone", { type: "validate", message: phoneValidation.message });
+      return;
+    }
+    onSubmit(values);
+  }
 
   function handleInputFocus(event: FocusEvent<HTMLInputElement>) {
     setFieldFocused(true);
@@ -472,7 +483,7 @@ function CheckoutModal({
             بعد إرسال الطلب بنتصل عليك لتأكيد المنتجات والكمية والعنوان. الرد على المكالمة يحجز طلبك للتجهيز أسرع.
           </span>
         </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
+        <form onSubmit={handleSubmit(submitWithPhoneValidation)} className="grid gap-4">
           <label className="grid gap-2 text-sm font-bold">
             الاسم
             <input
@@ -483,10 +494,10 @@ function CheckoutModal({
             {errors.name ? <span className="text-xs text-red-700">{errors.name.message}</span> : null}
           </label>
           <label className="grid gap-2 text-sm font-bold">
-            رقم الجوال السعودي
+            رقم الجوال في {market.countryNameAr}
             <input
               className="focus-ring rounded-xl border border-charcoal/15 bg-warm-50 px-4 py-3 text-right"
-              placeholder="05XXXXXXXX"
+              placeholder={phoneExample}
               dir="ltr"
               inputMode="tel"
               autoComplete="tel"

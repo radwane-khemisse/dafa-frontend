@@ -127,6 +127,7 @@ export default function AdminPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [catalog, setCatalog] = useState<{ markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] }>({ markets: [], products: [], packs: [] });
+  const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -138,7 +139,7 @@ export default function AdminPage() {
     setLoading(true);
     setError("");
     try {
-      const query = buildQuery(start, end);
+      const query = buildQuery(start, end, selectedMarkets);
       const [dashboardResponse, ordersResponse, catalogResponse] = await Promise.all([
         fetch(`${API_BASE_URL}/admin/dashboard?${query}`, { headers: { Authorization: `Basic ${nextAuth}` } }),
         fetch(`${API_BASE_URL}/admin/orders?${query}`, { headers: { Authorization: `Basic ${nextAuth}` } }),
@@ -163,6 +164,12 @@ export default function AdminPage() {
     const nextAuth = btoa(`${username}:${password}`);
     setAuth(nextAuth);
     void loadDashboard(nextAuth);
+  }
+
+  function toggleMarketFilter(marketCode: string, checked: boolean) {
+    setSelectedMarkets((current) =>
+      checked ? Array.from(new Set([...current, marketCode])) : current.filter((code) => code !== marketCode),
+    );
   }
 
   async function updateCatalogItem(item: CatalogItem, hidden: boolean) {
@@ -319,6 +326,7 @@ export default function AdminPage() {
           <div className="flex flex-wrap items-center gap-2">
             <DateInput label="Start" value={start} onChange={setStart} />
             <DateInput label="End" value={end} onChange={setEnd} />
+            <MarketFilter markets={catalog.markets} selectedMarkets={selectedMarkets} onToggle={toggleMarketFilter} onClear={() => setSelectedMarkets([])} />
             <button className="focus-ring inline-flex h-11 items-center gap-2 rounded-lg bg-olive px-4 font-black text-white" onClick={() => void loadDashboard()} disabled={loading}>
               <CalendarDays size={18} /> Apply
             </button>
@@ -345,10 +353,12 @@ export default function AdminPage() {
   );
 }
 
-function buildQuery(start: string, end: string) {
+function buildQuery(start: string, end: string, marketCodes: string[]) {
   const startDate = new Date(`${start}T00:00:00.000Z`).toISOString();
   const endDate = new Date(`${end}T23:59:59.999Z`).toISOString();
-  return new URLSearchParams({ start: startDate, end: endDate }).toString();
+  const params = new URLSearchParams({ start: startDate, end: endDate });
+  marketCodes.forEach((code) => params.append("market", code));
+  return params.toString();
 }
 
 function DateInput({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
@@ -504,6 +514,42 @@ function OrdersTab({ orders, onPreview }: { orders: AdminOrder[]; onPreview: (or
           </tbody>
         </table>
         {filtered.length === 0 ? <EmptyState /> : null}
+      </div>
+    </div>
+  );
+}
+
+function MarketFilter({
+  markets,
+  selectedMarkets,
+  onToggle,
+  onClear,
+}: {
+  markets: MarketConfig[];
+  selectedMarkets: string[];
+  onToggle: (marketCode: string, checked: boolean) => void;
+  onClear: () => void;
+}) {
+  if (markets.length === 0) return null;
+  return (
+    <div className="rounded-lg border border-charcoal/10 bg-white px-3 py-2">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <span className="text-xs font-black uppercase text-charcoal/55">Countries</span>
+        <button type="button" className="text-xs font-black text-olive" onClick={onClear}>
+          All
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {markets.map((market) => (
+          <label key={market.code} className="inline-flex items-center gap-2 rounded-md bg-warm-50 px-2 py-1 text-xs font-black uppercase">
+            <input
+              type="checkbox"
+              checked={selectedMarkets.includes(market.code)}
+              onChange={(event) => onToggle(market.code, event.target.checked)}
+            />
+            {market.code}
+          </label>
+        ))}
       </div>
     </div>
   );
