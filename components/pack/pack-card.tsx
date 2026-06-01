@@ -36,21 +36,21 @@ export async function PackCard({ pack }: { pack: Pack }) {
             </p>
           ))}
         </div>
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
-          <div>
+        <div className="mt-5 flex items-center justify-between gap-3">
+          <div className="min-w-0">
             <p className="text-xs font-bold text-charcoal/50">سعر المنتجين معا</p>
             <p className="text-2xl font-black">{formatMarketPrice(pack.price, market)}</p>
             <p className="text-xs font-bold text-charcoal/45 line-through">{formatMarketPrice(pack.compareAtPrice, market)} منفردة</p>
           </div>
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <div className="grid shrink-0 gap-2 sm:flex sm:items-center sm:justify-end">
             <Link
               href={prefixMarketHref(`/packs/${pack.slug}`, market)}
-              className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-charcoal/15 bg-white/70 px-4 py-3 text-sm font-bold transition hover:bg-white"
+              className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-charcoal/15 bg-white/70 px-3 py-2 text-xs font-bold transition hover:bg-white sm:min-h-11 sm:px-4 sm:py-3 sm:text-sm"
             >
               شوفي التفاصيل
               <ArrowLeft size={16} />
             </Link>
-            <AddPackButton pack={pack} showPrice={false} />
+            <AddPackButton pack={pack} showPrice={false} className="min-h-10 px-3 py-2 text-xs sm:min-h-11 sm:px-5 sm:py-3 sm:text-sm" />
           </div>
         </div>
       </div>
