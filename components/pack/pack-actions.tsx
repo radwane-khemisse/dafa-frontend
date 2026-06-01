@@ -10,7 +10,15 @@ import { formatMarketPrice } from "@/lib/markets";
 import { useCurrentMarket } from "@/lib/market-client";
 import { makePackCartItems, useCartStore } from "@/store/cart-store";
 
-export function AddPackButton({ pack, className = "" }: { pack: Pack; className?: string }) {
+export function AddPackButton({
+  pack,
+  className = "",
+  showPrice = true,
+}: {
+  pack: Pack;
+  className?: string;
+  showPrice?: boolean;
+}) {
   const addItems = useCartStore((state) => state.addItems);
   const market = useCurrentMarket();
   const products = getPackProducts(pack);
@@ -39,7 +47,7 @@ export function AddPackButton({ pack, className = "" }: { pack: Pack; className?
   return (
     <Button onClick={handleAddPack} variant="gold" className={className}>
       <ShoppingCart size={18} />
-      أضيفي المنتجين - {formatMarketPrice(pack.price, market)}
+      {showPrice ? <>أضيفي المنتجين - {formatMarketPrice(pack.price, market)}</> : "أضيفي المنتجين"}
     </Button>
   );
 }

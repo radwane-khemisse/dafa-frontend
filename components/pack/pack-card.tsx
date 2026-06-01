@@ -28,7 +28,6 @@ export async function PackCard({ pack }: { pack: Pack }) {
         </div>
         <h3 className="text-2xl font-black leading-tight">{pack.nameAr}</h3>
         <p className="mt-2 text-sm font-black text-date">{pack.subtitleAr}</p>
-        <p className="mt-3 text-sm font-bold leading-7 text-charcoal/64">{pack.descriptionAr}</p>
         <div className="mt-4 grid gap-2">
           {pack.benefits.slice(0, 2).map((benefit) => (
             <p key={benefit} className="flex gap-2 text-sm font-bold leading-7 text-charcoal/70">
@@ -43,7 +42,7 @@ export async function PackCard({ pack }: { pack: Pack }) {
             <p className="text-2xl font-black">{formatMarketPrice(pack.price, market)}</p>
             <p className="text-xs font-bold text-charcoal/45 line-through">{formatMarketPrice(pack.compareAtPrice, market)} منفردة</p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
             <Link
               href={prefixMarketHref(`/packs/${pack.slug}`, market)}
               className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-charcoal/15 bg-white/70 px-4 py-3 text-sm font-bold transition hover:bg-white"
@@ -51,7 +50,7 @@ export async function PackCard({ pack }: { pack: Pack }) {
               شوفي التفاصيل
               <ArrowLeft size={16} />
             </Link>
-            <AddPackButton pack={pack} />
+            <AddPackButton pack={pack} showPrice={false} />
           </div>
         </div>
       </div>

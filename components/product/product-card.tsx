@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Banknote, PhoneCall, ShieldCheck, ShoppingCart, Star } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Star } from "lucide-react";
 import type { Product } from "@/data/products";
 import { Button } from "@/components/ui/button";
 import { ProductVisual } from "@/components/ui/product-visual";
@@ -53,20 +53,6 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
         <h3 className="text-xl font-black">{product.nameAr}</h3>
         <p className="mt-3 text-sm font-bold leading-7 text-charcoal/65">{product.subheadingAr}</p>
-        <div className="mt-4 grid gap-2 rounded-xl border border-gold/35 bg-[#FFF7E4] p-4 text-sm font-black leading-7 text-date">
-          <span className="flex items-center gap-2">
-            <Banknote size={19} className="shrink-0 text-gold" />
-            الدفع عند الاستلام
-          </span>
-          <span className="flex items-center gap-2">
-            <PhoneCall size={19} className="shrink-0 text-gold" />
-            اتصال تأكيد قبل الشحن
-          </span>
-          <span className="flex items-center gap-2">
-            <ShieldCheck size={19} className="shrink-0 text-gold" />
-            ضمان ذهبي 30 يوم
-          </span>
-        </div>
         <div className="mt-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-xs text-charcoal/50">العروض تبدأ من</p>
