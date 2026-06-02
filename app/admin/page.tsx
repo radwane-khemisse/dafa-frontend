@@ -426,7 +426,7 @@ export default function AdminPage() {
         {activeTab === "overview" ? <Overview data={data} /> : null}
         {activeTab === "orders" ? <OrdersTab orders={orders} onPreview={setSelectedOrder} /> : null}
         {activeTab === "markets" ? <MarketsTab catalog={catalog} marketFees={marketFees} onFeeUpdate={updateMarketFees} onDetailChange={updateCatalogDetail} onUpdate={updateMarket} /> : null}
-        {activeTab === "catalog" ? <CatalogTab catalog={catalog} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} onPackPriceChange={updatePackPrice} onDetailChange={updateCatalogDetail} /> : null}
+        {activeTab === "catalog" ? <CatalogTab catalog={catalog} marketFees={marketFees} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} onPackPriceChange={updatePackPrice} onDetailChange={updateCatalogDetail} /> : null}
         {activeTab === "profit" ? <ProfitCalculator catalog={catalog} marketFees={marketFees} onFeeUpdate={updateMarketFees} /> : null}
       </div>
 
@@ -741,6 +741,7 @@ function MarketsTab({
 
 function CatalogTab({
   catalog,
+  marketFees,
   onToggle,
   onMarketToggle,
   onOfferPriceChange,
@@ -748,6 +749,7 @@ function CatalogTab({
   onDetailChange,
 }: {
   catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
+  marketFees: Record<string, MarketFees>;
   onToggle: (item: CatalogItem, hidden: boolean) => void;
   onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
   onOfferPriceChange: (item: CatalogItem, offer: AdminOffer, marketCode: string, price: number) => void;
@@ -756,8 +758,8 @@ function CatalogTab({
 }) {
   return (
     <div className="grid gap-5">
-      <CatalogList title="Products" items={catalog.products} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
-      <CatalogList title="Packs" items={catalog.packs} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
+      <CatalogList title="Products" items={catalog.products} markets={catalog.markets} marketFees={marketFees} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
+      <CatalogList title="Packs" items={catalog.packs} markets={catalog.markets} marketFees={marketFees} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
     </div>
   );
 }
@@ -766,6 +768,7 @@ function CatalogList({
   title,
   items,
   markets,
+  marketFees,
   onToggle,
   onMarketToggle,
   onOfferPriceChange,
@@ -775,6 +778,7 @@ function CatalogList({
   title: string;
   items: CatalogItem[];
   markets: MarketConfig[];
+  marketFees: Record<string, MarketFees>;
   onToggle: (item: CatalogItem, hidden: boolean) => void;
   onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
   onOfferPriceChange: (item: CatalogItem, offer: AdminOffer, marketCode: string, price: number) => void;
@@ -857,9 +861,20 @@ function CatalogList({
                 <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {markets.map((market) => {
                     const detail = item.details?.[market.code] ?? { sku: "", cost: 0 };
+                    const breakevenOption = catalogBreakevenOption(item, market, detail);
+                    const breakeven = breakevenOption
+                      ? calculateCodEconomics(breakevenOption, marketFeeFor(marketFees, market.code), DEFAULT_CONFIRMATION_RATE, DEFAULT_DELIVERY_RATE, 0, 100)
+                      : null;
                     return (
                       <div key={market.code} className="grid min-w-0 gap-2 rounded-lg bg-warm-50 p-3">
-                        <p className="text-xs font-black uppercase text-charcoal/55">{market.code}</p>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-black uppercase text-charcoal/55">{market.code}</p>
+                          {breakeven ? (
+                            <span className={`rounded-full px-2 py-1 text-[11px] font-black ${breakeven.maxCplUsd >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
+                              BE {formatUsd(breakeven.maxCplUsd)}
+                            </span>
+                          ) : null}
+                        </div>
                         <label className="grid gap-1 text-[11px] font-black uppercase text-charcoal/45">
                           SKU
                           <input
@@ -879,6 +894,17 @@ function CatalogList({
                             onBlur={(event) => onDetailChange(item, market.code, { sku: detail.sku, cost: Number(event.target.value) })}
                           />
                         </label>
+                        {breakeven ? (
+                          <div className="rounded-lg bg-white px-3 py-2 text-xs">
+                            <div className="flex justify-between gap-3">
+                              <span className="font-black uppercase text-charcoal/45">Max breakeven CPL</span>
+                              <span className={`font-black ${breakeven.maxCplUsd >= 0 ? "text-emerald-700" : "text-red-700"}`}>
+                                {formatUsd(breakeven.maxCplUsd)}
+                              </span>
+                            </div>
+                            <p className="mt-1 font-bold text-charcoal/45">55% confirmation / 55% delivery</p>
+                          </div>
+                        ) : null}
                       </div>
                     );
                   })}
@@ -1271,6 +1297,38 @@ function marketSkuRows(catalog: { markets: MarketConfig[]; products: CatalogItem
       }];
     }),
   ];
+}
+
+function catalogBreakevenOption(item: CatalogItem, market: MarketConfig, detail: MarketDetail): SkuOption | null {
+  if (!item.market_codes.includes(market.code)) return null;
+  if (item.type === "product") {
+    const offer = item.offers?.find((candidate) => candidate.id === "one") ?? item.offers?.[0];
+    if (!offer) return null;
+    return {
+      key: `${item.type}:${item.id}:${market.code}:catalog-breakeven`,
+      item,
+      offer,
+      market,
+      sku: detail.sku,
+      costLocal: Number(detail.cost) || 0,
+      priceLocal: offer.prices[market.code] ?? 0,
+      quantity: offer.quantity,
+      label: item.name_en,
+      priceLabel: `${detail.sku} - ${offer.id}`,
+    };
+  }
+
+  return {
+    key: `${item.type}:${item.id}:${market.code}:catalog-breakeven`,
+    item,
+    market,
+    sku: detail.sku,
+    costLocal: Number(detail.cost) || 0,
+    priceLocal: item.prices?.[market.code] ?? 0,
+    quantity: 1,
+    label: item.name_en,
+    priceLabel: `${detail.sku} - pack`,
+  };
 }
 
 function calculateCodEconomics(
