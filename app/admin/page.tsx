@@ -641,7 +641,7 @@ function CatalogTab({
   onDetailChange: (item: CatalogItem, marketCode: string, detail: MarketDetail) => void;
 }) {
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="grid gap-5">
       <CatalogList title="Products" items={catalog.products} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
       <CatalogList title="Packs" items={catalog.packs} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
     </div>
@@ -674,7 +674,7 @@ function CatalogList({
   }
 
   return (
-    <div className="rounded-lg border border-charcoal/10 bg-white p-5 shadow-soft">
+    <div className="min-w-0 rounded-lg border border-charcoal/10 bg-white p-4 shadow-soft sm:p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-lg font-black">{title}</h2>
         <span className="rounded-full bg-warm-100 px-3 py-1 text-xs font-black text-charcoal/60">
@@ -686,8 +686,8 @@ function CatalogList({
         {items.map((item) => {
           const expanded = expandedIds.includes(item.id);
           return (
-          <div key={`${item.type}-${item.id}`} className="rounded-lg border border-charcoal/10 p-4">
-            <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-start">
+          <div key={`${item.type}-${item.id}`} className="min-w-0 rounded-lg border border-charcoal/10 p-4">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-start">
               <button
                 type="button"
                 className="focus-ring -m-2 flex min-w-0 items-start gap-3 rounded-lg p-2 text-left"
@@ -709,7 +709,7 @@ function CatalogList({
                   <span className="mt-1 block text-xs text-charcoal/45">{item.id}</span>
                 </span>
               </button>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex min-w-0 flex-wrap gap-2">
                 {markets.map((market) => (
                   <span key={market.code} className={`rounded-md px-2 py-1 text-xs font-black uppercase ${item.market_codes.includes(market.code) ? "bg-emerald-50 text-emerald-700" : "bg-warm-50 text-charcoal/35"}`}>
                     {market.code}
@@ -740,16 +740,16 @@ function CatalogList({
               </div>
               <div className="mt-4 rounded-lg border border-charcoal/10 p-3">
                 <p className="mb-2 text-xs font-black uppercase text-charcoal/50">SKU and cost</p>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {markets.map((market) => {
                     const detail = item.details?.[market.code] ?? { sku: "", cost: 0 };
                     return (
-                      <div key={market.code} className="grid gap-2 rounded-lg bg-warm-50 p-3">
+                      <div key={market.code} className="grid min-w-0 gap-2 rounded-lg bg-warm-50 p-3">
                         <p className="text-xs font-black uppercase text-charcoal/55">{market.code}</p>
                         <label className="grid gap-1 text-[11px] font-black uppercase text-charcoal/45">
                           SKU
                           <input
-                            className="focus-ring h-9 rounded-lg border border-charcoal/10 bg-white px-2 text-xs font-black"
+                            className="focus-ring h-9 min-w-0 rounded-lg border border-charcoal/10 bg-white px-2 text-xs font-black"
                             defaultValue={detail.sku}
                             onBlur={(event) => onDetailChange(item, market.code, { sku: event.target.value, cost: Number(detail.cost) })}
                           />
@@ -757,7 +757,7 @@ function CatalogList({
                         <label className="grid gap-1 text-[11px] font-black uppercase text-charcoal/45">
                           Cost
                           <input
-                            className="focus-ring h-9 rounded-lg border border-charcoal/10 bg-white px-2 text-xs font-black"
+                            className="focus-ring h-9 min-w-0 rounded-lg border border-charcoal/10 bg-white px-2 text-xs font-black"
                             type="number"
                             min={0}
                             step="0.01"
@@ -772,7 +772,7 @@ function CatalogList({
               </div>
               {item.offers?.length ? (
                 <div className="mt-4 overflow-x-auto rounded-lg border border-charcoal/10">
-                  <table className="w-full min-w-[560px] border-collapse text-left text-xs">
+                  <table className="w-full min-w-[880px] border-collapse text-left text-xs">
                     <thead>
                       <tr className="border-b border-charcoal/10 bg-warm-50 text-charcoal/55">
                         <th className="px-3 py-2">Offer</th>
@@ -791,7 +791,7 @@ function CatalogList({
                           {markets.map((market) => (
                             <td key={`${offer.id}-${market.code}`} className="px-3 py-2">
                               <input
-                                className="focus-ring h-9 w-20 rounded-lg border border-charcoal/10 px-2 font-black"
+                                className="focus-ring h-9 w-24 rounded-lg border border-charcoal/10 px-2 font-black"
                                 type="number"
                                 min={0}
                                 defaultValue={offer.prices[market.code] ?? 0}
@@ -808,12 +808,12 @@ function CatalogList({
               {item.prices ? (
                 <div className="mt-4 rounded-lg border border-charcoal/10 p-3">
                   <p className="mb-2 text-xs font-black uppercase text-charcoal/50">Pack prices</p>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {markets.map((market) => (
-                      <label key={market.code} className="grid gap-1 text-xs font-black uppercase text-charcoal/55">
+                      <label key={market.code} className="grid min-w-0 gap-1 text-xs font-black uppercase text-charcoal/55">
                         {market.code}
                         <input
-                          className="focus-ring h-9 rounded-lg border border-charcoal/10 px-2 font-black"
+                          className="focus-ring h-9 min-w-0 rounded-lg border border-charcoal/10 px-2 font-black"
                           type="number"
                           min={0}
                           defaultValue={item.prices?.[market.code] ?? 0}
