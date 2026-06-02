@@ -5,6 +5,8 @@ import {
   Activity,
   Banknote,
   CalendarDays,
+  ChevronDown,
+  ChevronRight,
   Eye,
   EyeOff,
   Lock,
@@ -92,6 +94,7 @@ type CatalogItem = {
   product_ids?: string[];
   offers?: AdminOffer[];
   prices?: Record<string, number>;
+  details?: Record<string, MarketDetail>;
 };
 
 type AdminOffer = {
@@ -99,6 +102,11 @@ type AdminOffer = {
   label_ar: string;
   quantity: number;
   prices: Record<string, number>;
+};
+
+type MarketDetail = {
+  sku: string;
+  cost: number;
 };
 
 type MarketConfig = {
@@ -291,6 +299,34 @@ export default function AdminPage() {
     }
   }
 
+  async function updateCatalogDetail(item: CatalogItem, marketCode: string, detail: MarketDetail) {
+    if (!headers || !Number.isFinite(detail.cost) || detail.cost < 0 || !detail.sku.trim()) return;
+    const normalized = { sku: detail.sku.trim(), cost: detail.cost };
+    const key = item.type === "product" ? "products" : "packs";
+    setCatalog((current) => ({
+      ...current,
+      [key]: current[key].map((catalogItem) =>
+        catalogItem.id === item.id ? { ...catalogItem, details: { ...catalogItem.details, [marketCode]: normalized } } : catalogItem,
+      ),
+    }));
+    try {
+      const endpoint =
+        item.type === "product"
+          ? `${API_BASE_URL}/admin/catalog/products/${item.id}/details`
+          : `${API_BASE_URL}/admin/catalog/packs/${item.id}/details`;
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({ market_code: marketCode, ...normalized }),
+      });
+      if (!response.ok) throw new Error("Could not update catalog SKU/cost.");
+      void loadDashboard();
+    } catch (exc) {
+      setError(exc instanceof Error ? exc.message : "Could not update catalog SKU/cost.");
+      void loadDashboard();
+    }
+  }
+
   if (!auth || !data) {
     return (
       <section dir="ltr" className="min-h-[70vh] bg-[#F6F4EC] px-4 py-12 text-charcoal">
@@ -345,7 +381,7 @@ export default function AdminPage() {
         {activeTab === "overview" ? <Overview data={data} /> : null}
         {activeTab === "orders" ? <OrdersTab orders={orders} onPreview={setSelectedOrder} /> : null}
         {activeTab === "markets" ? <MarketsTab markets={catalog.markets} onUpdate={updateMarket} /> : null}
-        {activeTab === "catalog" ? <CatalogTab catalog={catalog} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} onPackPriceChange={updatePackPrice} /> : null}
+        {activeTab === "catalog" ? <CatalogTab catalog={catalog} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} onPackPriceChange={updatePackPrice} onDetailChange={updateCatalogDetail} /> : null}
       </div>
 
       {selectedOrder ? <OrderPreview order={selectedOrder} onClose={() => setSelectedOrder(null)} /> : null}
@@ -595,17 +631,19 @@ function CatalogTab({
   onMarketToggle,
   onOfferPriceChange,
   onPackPriceChange,
+  onDetailChange,
 }: {
   catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
   onToggle: (item: CatalogItem, hidden: boolean) => void;
   onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
   onOfferPriceChange: (item: CatalogItem, offer: AdminOffer, marketCode: string, price: number) => void;
   onPackPriceChange: (item: CatalogItem, marketCode: string, price: number) => void;
+  onDetailChange: (item: CatalogItem, marketCode: string, detail: MarketDetail) => void;
 }) {
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <CatalogList title="Products" items={catalog.products} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} />
-      <CatalogList title="Packs" items={catalog.packs} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} />
+      <CatalogList title="Products" items={catalog.products} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
+      <CatalogList title="Packs" items={catalog.packs} markets={catalog.markets} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
     </div>
   );
 }
@@ -618,6 +656,7 @@ function CatalogList({
   onMarketToggle,
   onOfferPriceChange,
   onPackPriceChange,
+  onDetailChange,
 }: {
   title: string;
   items: CatalogItem[];
@@ -626,7 +665,14 @@ function CatalogList({
   onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
   onOfferPriceChange: (item: CatalogItem, offer: AdminOffer, marketCode: string, price: number) => void;
   onPackPriceChange: (item: CatalogItem, marketCode: string, price: number) => void;
+  onDetailChange: (item: CatalogItem, marketCode: string, detail: MarketDetail) => void;
 }) {
+  const [expandedIds, setExpandedIds] = useState<string[]>([]);
+
+  function toggleExpanded(id: string) {
+    setExpandedIds((current) => (current.includes(id) ? current.filter((itemId) => itemId !== id) : [...current, id]));
+  }
+
   return (
     <div className="rounded-lg border border-charcoal/10 bg-white p-5 shadow-soft">
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -637,18 +683,49 @@ function CatalogList({
       </div>
       <div className="grid gap-3">
         {items.length === 0 ? <EmptyState /> : null}
-        {items.map((item) => (
-          <div key={`${item.type}-${item.id}`} className="grid gap-3 rounded-lg border border-charcoal/10 p-4 sm:grid-cols-[1fr_auto] sm:items-center">
-            <div className="min-w-0">
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className={`rounded-full px-2 py-1 text-xs font-black ${item.hidden ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}>
-                  {item.hidden ? "Hidden" : "Visible"}
+        {items.map((item) => {
+          const expanded = expandedIds.includes(item.id);
+          return (
+          <div key={`${item.type}-${item.id}`} className="rounded-lg border border-charcoal/10 p-4">
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-start">
+              <button
+                type="button"
+                className="focus-ring -m-2 flex min-w-0 items-start gap-3 rounded-lg p-2 text-left"
+                onClick={() => toggleExpanded(item.id)}
+                aria-expanded={expanded}
+              >
+                <span className="mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-md bg-warm-100 text-charcoal/65">
+                  {expanded ? <ChevronDown size={17} /> : <ChevronRight size={17} />}
                 </span>
-                <span className="text-xs font-bold uppercase text-charcoal/45">{item.type}</span>
+                <span className="min-w-0">
+                  <span className="mb-2 flex flex-wrap items-center gap-2">
+                    <span className={`rounded-full px-2 py-1 text-xs font-black ${item.hidden ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}>
+                      {item.hidden ? "Hidden" : "Visible"}
+                    </span>
+                    <span className="text-xs font-bold uppercase text-charcoal/45">{item.type}</span>
+                  </span>
+                  <span className="block truncate font-black" dir="rtl">{item.name_ar}</span>
+                  <span className="mt-1 block truncate text-sm font-bold text-charcoal/55">{item.name_en}</span>
+                  <span className="mt-1 block text-xs text-charcoal/45">{item.id}</span>
+                </span>
+              </button>
+              <div className="flex flex-wrap gap-2">
+                {markets.map((market) => (
+                  <span key={market.code} className={`rounded-md px-2 py-1 text-xs font-black uppercase ${item.market_codes.includes(market.code) ? "bg-emerald-50 text-emerald-700" : "bg-warm-50 text-charcoal/35"}`}>
+                    {market.code}
+                  </span>
+                ))}
               </div>
-              <p className="truncate font-black" dir="rtl">{item.name_ar}</p>
-              <p className="mt-1 truncate text-sm font-bold text-charcoal/55">{item.name_en}</p>
-              <p className="mt-1 text-xs text-charcoal/45">{item.id}</p>
+              <button
+                className={`focus-ring inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black ${item.hidden ? "bg-olive text-white" : "bg-charcoal text-white"}`}
+                onClick={() => onToggle(item, !item.hidden)}
+              >
+                {item.hidden ? <RotateCcw size={17} /> : <EyeOff size={17} />}
+                {item.hidden ? "Restore" : "Hide"}
+              </button>
+            </div>
+            {expanded ? (
+            <div className="mt-4 min-w-0 border-t border-charcoal/10 pt-4">
               <div className="mt-3 flex flex-wrap gap-2">
                 {markets.map((market) => (
                   <label key={market.code} className="inline-flex items-center gap-2 rounded-lg bg-warm-50 px-2 py-1 text-xs font-black uppercase">
@@ -660,6 +737,38 @@ function CatalogList({
                     {market.code}
                   </label>
                 ))}
+              </div>
+              <div className="mt-4 rounded-lg border border-charcoal/10 p-3">
+                <p className="mb-2 text-xs font-black uppercase text-charcoal/50">SKU and cost</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {markets.map((market) => {
+                    const detail = item.details?.[market.code] ?? { sku: "", cost: 0 };
+                    return (
+                      <div key={market.code} className="grid gap-2 rounded-lg bg-warm-50 p-3">
+                        <p className="text-xs font-black uppercase text-charcoal/55">{market.code}</p>
+                        <label className="grid gap-1 text-[11px] font-black uppercase text-charcoal/45">
+                          SKU
+                          <input
+                            className="focus-ring h-9 rounded-lg border border-charcoal/10 bg-white px-2 text-xs font-black"
+                            defaultValue={detail.sku}
+                            onBlur={(event) => onDetailChange(item, market.code, { sku: event.target.value, cost: Number(detail.cost) })}
+                          />
+                        </label>
+                        <label className="grid gap-1 text-[11px] font-black uppercase text-charcoal/45">
+                          Cost
+                          <input
+                            className="focus-ring h-9 rounded-lg border border-charcoal/10 bg-white px-2 text-xs font-black"
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            defaultValue={detail.cost}
+                            onBlur={(event) => onDetailChange(item, market.code, { sku: detail.sku, cost: Number(event.target.value) })}
+                          />
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
               {item.offers?.length ? (
                 <div className="mt-4 overflow-x-auto rounded-lg border border-charcoal/10">
@@ -716,15 +825,10 @@ function CatalogList({
                 </div>
               ) : null}
             </div>
-            <button
-              className={`focus-ring inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black ${item.hidden ? "bg-olive text-white" : "bg-charcoal text-white"}`}
-              onClick={() => onToggle(item, !item.hidden)}
-            >
-              {item.hidden ? <RotateCcw size={17} /> : <EyeOff size={17} />}
-              {item.hidden ? "Restore" : "Hide"}
-            </button>
+            ) : null}
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
