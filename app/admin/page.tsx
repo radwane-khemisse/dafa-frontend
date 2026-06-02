@@ -28,19 +28,21 @@ type AdminTab = "overview" | "orders" | "markets" | "catalog" | "profit";
 
 type MarketFees = {
   fxToUsd: number;
-  confirmationFeeUsd: number;
-  deliveryFeeUsd: number;
-  returnFeeUsd: number;
+  leadFeeUsd: number;
+  callCenterConfirmationFeeUsd: number;
+  callCenterDeliveredFeeUsd: number;
+  shippingDeliveredFeeUsd: number;
+  shippingReturnedFeeUsd: number;
   codFeePercent: number;
 };
 
 const DEFAULT_MARKET_FEES: Record<string, MarketFees> = {
-  ksa: { fxToUsd: 0.2667, confirmationFeeUsd: 0, deliveryFeeUsd: 0, returnFeeUsd: 0, codFeePercent: 0 },
-  kwt: { fxToUsd: 3.25, confirmationFeeUsd: 0, deliveryFeeUsd: 0, returnFeeUsd: 0, codFeePercent: 0 },
-  uae: { fxToUsd: 0.2723, confirmationFeeUsd: 0, deliveryFeeUsd: 0, returnFeeUsd: 0, codFeePercent: 0 },
-  qat: { fxToUsd: 0.2747, confirmationFeeUsd: 0, deliveryFeeUsd: 0, returnFeeUsd: 0, codFeePercent: 0 },
-  bhr: { fxToUsd: 2.65, confirmationFeeUsd: 0, deliveryFeeUsd: 0, returnFeeUsd: 0, codFeePercent: 0 },
-  omn: { fxToUsd: 2.6, confirmationFeeUsd: 0, deliveryFeeUsd: 0, returnFeeUsd: 0, codFeePercent: 0 },
+  ksa: { fxToUsd: 0.2667, leadFeeUsd: 0.5, callCenterConfirmationFeeUsd: 1, callCenterDeliveredFeeUsd: 2, shippingDeliveredFeeUsd: 4.99, shippingReturnedFeeUsd: 2.99, codFeePercent: 5 },
+  kwt: { fxToUsd: 3.25, leadFeeUsd: 0.5, callCenterConfirmationFeeUsd: 1, callCenterDeliveredFeeUsd: 2, shippingDeliveredFeeUsd: 6.99, shippingReturnedFeeUsd: 5.99, codFeePercent: 5 },
+  uae: { fxToUsd: 0.2723, leadFeeUsd: 0.5, callCenterConfirmationFeeUsd: 1, callCenterDeliveredFeeUsd: 2, shippingDeliveredFeeUsd: 5.99, shippingReturnedFeeUsd: 4.99, codFeePercent: 5 },
+  qat: { fxToUsd: 0.2747, leadFeeUsd: 0.5, callCenterConfirmationFeeUsd: 1, callCenterDeliveredFeeUsd: 2, shippingDeliveredFeeUsd: 6.99, shippingReturnedFeeUsd: 5.99, codFeePercent: 5 },
+  bhr: { fxToUsd: 2.65, leadFeeUsd: 0.5, callCenterConfirmationFeeUsd: 1, callCenterDeliveredFeeUsd: 2, shippingDeliveredFeeUsd: 6.99, shippingReturnedFeeUsd: 5.99, codFeePercent: 5 },
+  omn: { fxToUsd: 2.6, leadFeeUsd: 0.5, callCenterConfirmationFeeUsd: 1, callCenterDeliveredFeeUsd: 2, shippingDeliveredFeeUsd: 6.99, shippingReturnedFeeUsd: 5.99, codFeePercent: 5 },
 };
 
 type DashboardData = {
@@ -680,9 +682,11 @@ function MarketsTab({
           </label>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <NumberField label="USD rate" value={fees.fxToUsd} step="0.0001" onChange={(value) => onFeeUpdate(market.code, { fxToUsd: value })} />
-            <NumberField label="Call fee USD" value={fees.confirmationFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(market.code, { confirmationFeeUsd: value })} />
-            <NumberField label="Delivery fee USD" value={fees.deliveryFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(market.code, { deliveryFeeUsd: value })} />
-            <NumberField label="Return fee USD" value={fees.returnFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(market.code, { returnFeeUsd: value })} />
+            <NumberField label="Lead fee USD" value={fees.leadFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(market.code, { leadFeeUsd: value })} />
+            <NumberField label="Confirmation USD" value={fees.callCenterConfirmationFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(market.code, { callCenterConfirmationFeeUsd: value })} />
+            <NumberField label="CC delivered USD" value={fees.callCenterDeliveredFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(market.code, { callCenterDeliveredFeeUsd: value })} />
+            <NumberField label="Shipping delivered USD" value={fees.shippingDeliveredFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(market.code, { shippingDeliveredFeeUsd: value })} />
+            <NumberField label="Shipping returned USD" value={fees.shippingReturnedFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(market.code, { shippingReturnedFeeUsd: value })} />
             <NumberField label="COD fee %" value={fees.codFeePercent} step="0.1" onChange={(value) => onFeeUpdate(market.code, { codFeePercent: value })} />
           </div>
           <div className="mt-4 overflow-x-auto rounded-lg border border-charcoal/10">
@@ -1063,11 +1067,37 @@ function ProfitCalculator({
       <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="rounded-lg border border-charcoal/10 bg-white p-5 shadow-soft">
           <h3 className="mb-4 text-lg font-black">Country service fees</h3>
+          <div className="mb-4 overflow-x-auto rounded-lg border border-charcoal/10">
+            <table className="w-full min-w-[760px] border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-charcoal/10 bg-warm-50 text-charcoal/55">
+                  <th className="px-3 py-2">Lead</th>
+                  <th className="px-3 py-2">Confirmation</th>
+                  <th className="px-3 py-2">CC delivered</th>
+                  <th className="px-3 py-2">Ship delivered</th>
+                  <th className="px-3 py-2">Ship returned</th>
+                  <th className="px-3 py-2">COD</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="px-3 py-3 font-black">{formatUsd(fees.leadFeeUsd)}</td>
+                  <td className="px-3 py-3 font-black">{formatUsd(fees.callCenterConfirmationFeeUsd)}</td>
+                  <td className="px-3 py-3 font-black">{formatUsd(fees.callCenterDeliveredFeeUsd)}</td>
+                  <td className="px-3 py-3 font-black">{formatUsd(fees.shippingDeliveredFeeUsd)}</td>
+                  <td className="px-3 py-3 font-black">{formatUsd(fees.shippingReturnedFeeUsd)}</td>
+                  <td className="px-3 py-3 font-black">{fees.codFeePercent}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <NumberField label="USD rate" value={fees.fxToUsd} step="0.0001" onChange={(value) => onFeeUpdate(selectedMarket.code, { fxToUsd: value })} />
-            <NumberField label="Call fee USD" value={fees.confirmationFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(selectedMarket.code, { confirmationFeeUsd: value })} />
-            <NumberField label="Delivery fee USD" value={fees.deliveryFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(selectedMarket.code, { deliveryFeeUsd: value })} />
-            <NumberField label="Return fee USD" value={fees.returnFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(selectedMarket.code, { returnFeeUsd: value })} />
+            <NumberField label="Lead fee USD" value={fees.leadFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(selectedMarket.code, { leadFeeUsd: value })} />
+            <NumberField label="Confirmation USD" value={fees.callCenterConfirmationFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(selectedMarket.code, { callCenterConfirmationFeeUsd: value })} />
+            <NumberField label="CC delivered USD" value={fees.callCenterDeliveredFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(selectedMarket.code, { callCenterDeliveredFeeUsd: value })} />
+            <NumberField label="Shipping delivered USD" value={fees.shippingDeliveredFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(selectedMarket.code, { shippingDeliveredFeeUsd: value })} />
+            <NumberField label="Shipping returned USD" value={fees.shippingReturnedFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(selectedMarket.code, { shippingReturnedFeeUsd: value })} />
             <NumberField label="COD fee %" value={fees.codFeePercent} step="0.1" onChange={(value) => onFeeUpdate(selectedMarket.code, { codFeePercent: value })} />
             <NumberField label={`Selling price ${selectedMarket.currency}`} value={simulatedOption.priceLocal} step="0.01" onChange={(value) => setPriceOverride(String(value))} />
           </div>
@@ -1103,6 +1133,10 @@ function ProfitCalculator({
           <MetricBox label="Revenue" value={formatUsd(scaled.revenueUsd)} />
           <MetricBox label="Ad spend" value={formatUsd(scaled.adSpendUsd)} />
           <MetricBox label="Service fees" value={formatUsd(scaled.serviceFeesUsd)} />
+          <MetricBox label="Provider lead fees" value={formatUsd(scaled.providerLeadFeesUsd)} />
+          <MetricBox label="Call center fees" value={formatUsd(scaled.callCenterFeesUsd)} />
+          <MetricBox label="Shipping fees" value={formatUsd(scaled.shippingFeesUsd)} />
+          <MetricBox label="COD fees" value={formatUsd(scaled.codFeesUsd)} />
           <MetricBox label="Product cost" value={formatUsd(scaled.productCostUsd)} />
           <MetricBox label="Confirmed" value={scaled.confirmed.toFixed(1)} />
           <MetricBox label="Delivered" value={scaled.delivered.toFixed(1)} />
@@ -1257,11 +1291,11 @@ function calculateCodEconomics(
   const returned = Math.max(confirmed - delivered, 0);
   const revenueUsd = delivered * priceUsd;
   const productCostUsd = delivered * costUsd;
-  const callFeesUsd = confirmed * fees.confirmationFeeUsd;
-  const deliveryFeesUsd = delivered * fees.deliveryFeeUsd;
-  const returnFeesUsd = returned * fees.returnFeeUsd;
+  const providerLeadFeesUsd = safeLeads * fees.leadFeeUsd;
+  const callCenterFeesUsd = confirmed * fees.callCenterConfirmationFeeUsd + delivered * fees.callCenterDeliveredFeeUsd;
+  const shippingFeesUsd = delivered * fees.shippingDeliveredFeeUsd + returned * fees.shippingReturnedFeeUsd;
   const codFeesUsd = revenueUsd * (fees.codFeePercent / 100);
-  const serviceFeesUsd = callFeesUsd + deliveryFeesUsd + returnFeesUsd + codFeesUsd;
+  const serviceFeesUsd = providerLeadFeesUsd + callCenterFeesUsd + shippingFeesUsd + codFeesUsd;
   const adSpendUsd = safeLeads * costPerLeadUsd;
   const profitBeforeAdsUsd = revenueUsd - productCostUsd - serviceFeesUsd;
   const profitUsd = profitBeforeAdsUsd - adSpendUsd;
@@ -1274,6 +1308,10 @@ function calculateCodEconomics(
     revenueUsd,
     productCostUsd,
     serviceFeesUsd,
+    providerLeadFeesUsd,
+    callCenterFeesUsd,
+    shippingFeesUsd,
+    codFeesUsd,
     adSpendUsd,
     profitUsd,
     maxCplUsd: safeLeads ? profitBeforeAdsUsd / safeLeads : 0,
