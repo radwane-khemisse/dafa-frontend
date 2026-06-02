@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   Activity,
   Banknote,
@@ -21,6 +21,27 @@ import {
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const DEFAULT_CONFIRMATION_RATE = 55;
+const DEFAULT_DELIVERY_RATE = 55;
+
+type AdminTab = "overview" | "orders" | "markets" | "catalog" | "profit";
+
+type MarketFees = {
+  fxToUsd: number;
+  confirmationFeeUsd: number;
+  deliveryFeeUsd: number;
+  returnFeeUsd: number;
+  codFeePercent: number;
+};
+
+const DEFAULT_MARKET_FEES: Record<string, MarketFees> = {
+  ksa: { fxToUsd: 0.2667, confirmationFeeUsd: 0, deliveryFeeUsd: 0, returnFeeUsd: 0, codFeePercent: 0 },
+  kwt: { fxToUsd: 3.25, confirmationFeeUsd: 0, deliveryFeeUsd: 0, returnFeeUsd: 0, codFeePercent: 0 },
+  uae: { fxToUsd: 0.2723, confirmationFeeUsd: 0, deliveryFeeUsd: 0, returnFeeUsd: 0, codFeePercent: 0 },
+  qat: { fxToUsd: 0.2747, confirmationFeeUsd: 0, deliveryFeeUsd: 0, returnFeeUsd: 0, codFeePercent: 0 },
+  bhr: { fxToUsd: 2.65, confirmationFeeUsd: 0, deliveryFeeUsd: 0, returnFeeUsd: 0, codFeePercent: 0 },
+  omn: { fxToUsd: 2.6, confirmationFeeUsd: 0, deliveryFeeUsd: 0, returnFeeUsd: 0, codFeePercent: 0 },
+};
 
 type DashboardData = {
   range: { start: string; end: string };
@@ -119,6 +140,19 @@ type MarketConfig = {
   market_code: string;
 };
 
+type SkuOption = {
+  key: string;
+  item: CatalogItem;
+  offer?: AdminOffer;
+  market: MarketConfig;
+  sku: string;
+  costLocal: number;
+  priceLocal: number;
+  quantity: number;
+  label: string;
+  priceLabel: string;
+};
+
 function isoDate(daysAgo: number) {
   const date = new Date();
   date.setDate(date.getDate() - daysAgo);
@@ -131,16 +165,24 @@ export default function AdminPage() {
   const [auth, setAuth] = useState("");
   const [start, setStart] = useState(isoDate(7));
   const [end, setEnd] = useState(isoDate(0));
-  const [activeTab, setActiveTab] = useState<"overview" | "orders" | "markets" | "catalog">("overview");
+  const [activeTab, setActiveTab] = useState<AdminTab>("overview");
   const [data, setData] = useState<DashboardData | null>(null);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [catalog, setCatalog] = useState<{ markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] }>({ markets: [], products: [], packs: [] });
+  const [marketFees, setMarketFees] = useState<Record<string, MarketFees>>(DEFAULT_MARKET_FEES);
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const headers = useMemo(() => (auth ? { Authorization: `Basic ${auth}` } : undefined), [auth]);
+
+  function updateMarketFees(marketCode: string, next: Partial<MarketFees>) {
+    setMarketFees((current) => ({
+      ...current,
+      [marketCode]: { ...marketFeeFor(current, marketCode), ...next },
+    }));
+  }
 
   async function loadDashboard(nextAuth = auth) {
     if (!nextAuth) return;
@@ -374,14 +416,16 @@ export default function AdminPage() {
           <TabButton active={activeTab === "orders"} onClick={() => setActiveTab("orders")}>Orders</TabButton>
           <TabButton active={activeTab === "markets"} onClick={() => setActiveTab("markets")}>Markets</TabButton>
           <TabButton active={activeTab === "catalog"} onClick={() => setActiveTab("catalog")}>Catalog</TabButton>
+          <TabButton active={activeTab === "profit"} onClick={() => setActiveTab("profit")}>Profit calculator</TabButton>
         </div>
 
         {error ? <p className="mb-5 rounded-lg bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{error}</p> : null}
 
         {activeTab === "overview" ? <Overview data={data} /> : null}
         {activeTab === "orders" ? <OrdersTab orders={orders} onPreview={setSelectedOrder} /> : null}
-        {activeTab === "markets" ? <MarketsTab markets={catalog.markets} onUpdate={updateMarket} /> : null}
+        {activeTab === "markets" ? <MarketsTab catalog={catalog} marketFees={marketFees} onFeeUpdate={updateMarketFees} onDetailChange={updateCatalogDetail} onUpdate={updateMarket} /> : null}
         {activeTab === "catalog" ? <CatalogTab catalog={catalog} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} onPackPriceChange={updatePackPrice} onDetailChange={updateCatalogDetail} /> : null}
+        {activeTab === "profit" ? <ProfitCalculator catalog={catalog} marketFees={marketFees} onFeeUpdate={updateMarketFees} /> : null}
       </div>
 
       {selectedOrder ? <OrderPreview order={selectedOrder} onClose={() => setSelectedOrder(null)} /> : null}
@@ -591,10 +635,25 @@ function MarketFilter({
   );
 }
 
-function MarketsTab({ markets, onUpdate }: { markets: MarketConfig[]; onUpdate: (market: MarketConfig, next: Partial<Pick<MarketConfig, "active" | "currency">>) => void }) {
+function MarketsTab({
+  catalog,
+  marketFees,
+  onFeeUpdate,
+  onDetailChange,
+  onUpdate,
+}: {
+  catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
+  marketFees: Record<string, MarketFees>;
+  onFeeUpdate: (marketCode: string, next: Partial<MarketFees>) => void;
+  onDetailChange: (item: CatalogItem, marketCode: string, detail: MarketDetail) => void;
+  onUpdate: (market: MarketConfig, next: Partial<Pick<MarketConfig, "active" | "currency">>) => void;
+}) {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      {markets.map((market) => (
+      {catalog.markets.map((market) => {
+        const fees = marketFeeFor(marketFees, market.code);
+        const rows = marketSkuRows(catalog, market);
+        return (
         <div key={market.code} className="rounded-lg border border-charcoal/10 bg-white p-5 shadow-soft">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
@@ -619,8 +678,59 @@ function MarketsTab({ markets, onUpdate }: { markets: MarketConfig[]; onUpdate: 
               onChange={(event) => onUpdate(market, { currency: event.target.value })}
             />
           </label>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <NumberField label="USD rate" value={fees.fxToUsd} step="0.0001" onChange={(value) => onFeeUpdate(market.code, { fxToUsd: value })} />
+            <NumberField label="Call fee USD" value={fees.confirmationFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(market.code, { confirmationFeeUsd: value })} />
+            <NumberField label="Delivery fee USD" value={fees.deliveryFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(market.code, { deliveryFeeUsd: value })} />
+            <NumberField label="Return fee USD" value={fees.returnFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(market.code, { returnFeeUsd: value })} />
+            <NumberField label="COD fee %" value={fees.codFeePercent} step="0.1" onChange={(value) => onFeeUpdate(market.code, { codFeePercent: value })} />
+          </div>
+          <div className="mt-4 overflow-x-auto rounded-lg border border-charcoal/10">
+            <table className="w-full min-w-[720px] border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-charcoal/10 bg-warm-50 text-charcoal/55">
+                  <th className="px-3 py-2">SKU</th>
+                  <th className="px-3 py-2">Item</th>
+                  <th className="px-3 py-2">Cost</th>
+                  <th className="px-3 py-2">Price</th>
+                  <th className="px-3 py-2">Max BE CPL</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => {
+                  const result = calculateCodEconomics(row.option, fees, DEFAULT_CONFIRMATION_RATE, DEFAULT_DELIVERY_RATE, 0, 100);
+                  const detail = row.option.item.details?.[market.code] ?? { sku: row.option.sku, cost: row.option.costLocal };
+                  return (
+                    <tr key={row.option.key} className="border-b border-charcoal/10 last:border-0">
+                      <td className="px-3 py-2 font-black">{row.option.sku}</td>
+                      <td className="px-3 py-2">
+                        <span className="block font-black">{row.option.item.name_en}</span>
+                        <span className="text-[11px] font-bold uppercase text-charcoal/45">{row.option.item.type}</span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="focus-ring h-9 w-24 rounded-lg border border-charcoal/10 px-2 font-black"
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          defaultValue={detail.cost}
+                          onBlur={(event) => onDetailChange(row.option.item, market.code, { sku: detail.sku, cost: Number(event.target.value) })}
+                        />
+                      </td>
+                      <td className="px-3 py-2 font-black">{formatMoney(row.option.priceLocal, market.currency)}</td>
+                      <td className={`px-3 py-2 font-black ${result.maxCplUsd >= 0 ? "text-emerald-700" : "text-red-700"}`}>
+                        {formatUsd(result.maxCplUsd)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {rows.length === 0 ? <EmptyState /> : null}
+          </div>
         </div>
-      ))}
+      );
+      })}
     </div>
   );
 }
@@ -832,6 +942,357 @@ function CatalogList({
       </div>
     </div>
   );
+}
+
+function ProfitCalculator({
+  catalog,
+  marketFees,
+  onFeeUpdate,
+}: {
+  catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
+  marketFees: Record<string, MarketFees>;
+  onFeeUpdate: (marketCode: string, next: Partial<MarketFees>) => void;
+}) {
+  const items = useMemo(() => [...catalog.products, ...catalog.packs], [catalog.products, catalog.packs]);
+  const allOptions = useMemo(() => catalogSkuOptions(catalog), [catalog]);
+  const [itemId, setItemId] = useState("");
+  const selectedItem = items.find((item) => item.id === itemId) ?? items[0];
+  const marketOptions = selectedItem ? catalog.markets.filter((market) => selectedItem.market_codes.includes(market.code)) : catalog.markets;
+  const [marketCode, setMarketCode] = useState("");
+  const selectedMarket = marketOptions.find((market) => market.code === marketCode) ?? marketOptions[0] ?? catalog.markets[0];
+  const skuOptions = selectedItem && selectedMarket
+    ? allOptions.filter((option) => option.item.id === selectedItem.id && option.item.type === selectedItem.type && option.market.code === selectedMarket.code)
+    : [];
+  const [optionKey, setOptionKey] = useState("");
+  const selectedOption = skuOptions.find((option) => option.key === optionKey) ?? skuOptions[0];
+  const [priceOverride, setPriceOverride] = useState("");
+  const [leads, setLeads] = useState(1000);
+  const [costPerLeadUsd, setCostPerLeadUsd] = useState(1);
+  const [confirmationRate, setConfirmationRate] = useState(DEFAULT_CONFIRMATION_RATE);
+  const [deliveryRate, setDeliveryRate] = useState(DEFAULT_DELIVERY_RATE);
+
+  useEffect(() => {
+    if (!itemId && items[0]) setItemId(items[0].id);
+  }, [itemId, items]);
+
+  useEffect(() => {
+    if (!selectedMarket) return;
+    if (marketCode !== selectedMarket.code) setMarketCode(selectedMarket.code);
+  }, [marketCode, selectedMarket]);
+
+  useEffect(() => {
+    if (!selectedOption) return;
+    if (optionKey !== selectedOption.key) setOptionKey(selectedOption.key);
+  }, [optionKey, selectedOption]);
+
+  if (!selectedOption || !selectedMarket) {
+    return <EmptyState />;
+  }
+
+  const fees = marketFeeFor(marketFees, selectedMarket.code);
+  const simulatedOption = {
+    ...selectedOption,
+    priceLocal: priceOverride === "" ? selectedOption.priceLocal : Number(priceOverride),
+  };
+  const breakeven = calculateCodEconomics(simulatedOption, fees, confirmationRate, deliveryRate, 0, 100);
+  const scaled = calculateCodEconomics(simulatedOption, fees, confirmationRate, deliveryRate, costPerLeadUsd, leads);
+  const maxCplLocal = fees.fxToUsd ? breakeven.maxCplUsd / fees.fxToUsd : 0;
+
+  return (
+    <div className="grid gap-5">
+      <div className="rounded-lg border border-charcoal/10 bg-white p-5 shadow-soft">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-black">Profit calculator</h2>
+            <p className="text-sm font-bold text-charcoal/55">Select the exact SKU, market, and offer you want to simulate.</p>
+          </div>
+          <span className="rounded-full bg-warm-100 px-3 py-1 text-xs font-black uppercase text-charcoal/60">{selectedOption.sku}</span>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          <label className="grid gap-1 text-xs font-black uppercase text-charcoal/55">
+            Product or pack
+            <select
+              className="focus-ring h-11 rounded-lg border border-charcoal/10 bg-white px-3 text-sm font-black"
+              value={selectedItem?.id ?? ""}
+              onChange={(event) => {
+                setItemId(event.target.value);
+                setMarketCode("");
+                setOptionKey("");
+                setPriceOverride("");
+              }}
+            >
+              {items.map((item) => (
+                <option key={`${item.type}-${item.id}`} value={item.id}>{item.name_en}</option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs font-black uppercase text-charcoal/55">
+            Country
+            <select
+              className="focus-ring h-11 rounded-lg border border-charcoal/10 bg-white px-3 text-sm font-black uppercase"
+              value={selectedMarket.code}
+              onChange={(event) => {
+                setMarketCode(event.target.value);
+                setOptionKey("");
+                setPriceOverride("");
+              }}
+            >
+              {marketOptions.map((market) => (
+                <option key={market.code} value={market.code}>{market.code.toUpperCase()} - {market.country_name_en}</option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs font-black uppercase text-charcoal/55">
+            SKU / offer
+            <select
+              className="focus-ring h-11 rounded-lg border border-charcoal/10 bg-white px-3 text-sm font-black"
+              value={selectedOption.key}
+              onChange={(event) => {
+                setOptionKey(event.target.value);
+                setPriceOverride("");
+              }}
+            >
+              {skuOptions.map((option) => (
+                <option key={option.key} value={option.key}>{option.priceLabel}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="rounded-lg border border-charcoal/10 bg-white p-5 shadow-soft">
+          <h3 className="mb-4 text-lg font-black">Country service fees</h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <NumberField label="USD rate" value={fees.fxToUsd} step="0.0001" onChange={(value) => onFeeUpdate(selectedMarket.code, { fxToUsd: value })} />
+            <NumberField label="Call fee USD" value={fees.confirmationFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(selectedMarket.code, { confirmationFeeUsd: value })} />
+            <NumberField label="Delivery fee USD" value={fees.deliveryFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(selectedMarket.code, { deliveryFeeUsd: value })} />
+            <NumberField label="Return fee USD" value={fees.returnFeeUsd} step="0.01" onChange={(value) => onFeeUpdate(selectedMarket.code, { returnFeeUsd: value })} />
+            <NumberField label="COD fee %" value={fees.codFeePercent} step="0.1" onChange={(value) => onFeeUpdate(selectedMarket.code, { codFeePercent: value })} />
+            <NumberField label={`Selling price ${selectedMarket.currency}`} value={simulatedOption.priceLocal} step="0.01" onChange={(value) => setPriceOverride(String(value))} />
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-charcoal/10 bg-white p-5 shadow-soft">
+          <h3 className="mb-4 text-lg font-black">Breakeven</h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <NumberField label="Confirmation %" value={confirmationRate} step="1" onChange={setConfirmationRate} />
+            <NumberField label="Delivery %" value={deliveryRate} step="1" onChange={setDeliveryRate} />
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <MetricBox label="Max CPL USD" value={formatUsd(breakeven.maxCplUsd)} tone={breakeven.maxCplUsd >= 0 ? "good" : "bad"} />
+            <MetricBox label={`Max CPL ${selectedMarket.currency}`} value={formatMoney(maxCplLocal, selectedMarket.currency)} tone={breakeven.maxCplUsd >= 0 ? "good" : "bad"} />
+            <MetricBox label="Profit before ads / lead" value={formatUsd(breakeven.maxCplUsd)} />
+            <MetricBox label="Price USD" value={formatUsd(scaled.priceUsd)} />
+            <MetricBox label="Product cost USD" value={formatUsd(scaled.costUsd)} />
+            <MetricBox label="Delivered per 100 leads" value={breakeven.delivered.toFixed(1)} />
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-charcoal/10 bg-white p-5 shadow-soft">
+        <h3 className="mb-4 text-lg font-black">Scale profit</h3>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <NumberField label="Leads" value={leads} step="1" onChange={setLeads} />
+          <NumberField label="Cost per lead USD" value={costPerLeadUsd} step="0.01" onChange={setCostPerLeadUsd} />
+          <NumberField label="Confirmation %" value={confirmationRate} step="1" onChange={setConfirmationRate} />
+          <NumberField label="Delivery %" value={deliveryRate} step="1" onChange={setDeliveryRate} />
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricBox label="Net profit" value={formatUsd(scaled.profitUsd)} tone={scaled.profitUsd >= 0 ? "good" : "bad"} />
+          <MetricBox label="Revenue" value={formatUsd(scaled.revenueUsd)} />
+          <MetricBox label="Ad spend" value={formatUsd(scaled.adSpendUsd)} />
+          <MetricBox label="Service fees" value={formatUsd(scaled.serviceFeesUsd)} />
+          <MetricBox label="Product cost" value={formatUsd(scaled.productCostUsd)} />
+          <MetricBox label="Confirmed" value={scaled.confirmed.toFixed(1)} />
+          <MetricBox label="Delivered" value={scaled.delivered.toFixed(1)} />
+          <MetricBox label="Profit / lead" value={formatUsd(scaled.profitUsd / Math.max(leads, 1))} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NumberField({
+  label,
+  value,
+  step,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  step: string;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="grid min-w-0 gap-1 text-xs font-black uppercase text-charcoal/55">
+      {label}
+      <input
+        className="focus-ring h-11 min-w-0 rounded-lg border border-charcoal/10 bg-white px-3 text-sm font-black"
+        type="number"
+        min={0}
+        step={step}
+        value={Number.isFinite(value) ? value : 0}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
+    </label>
+  );
+}
+
+function MetricBox({ label, value, tone }: { label: string; value: string; tone?: "good" | "bad" }) {
+  return (
+    <div className="rounded-lg bg-warm-50 p-4">
+      <p className="text-xs font-black uppercase text-charcoal/50">{label}</p>
+      <p className={`mt-2 text-xl font-black ${tone === "good" ? "text-emerald-700" : tone === "bad" ? "text-red-700" : ""}`}>{value}</p>
+    </div>
+  );
+}
+
+function marketFeeFor(fees: Record<string, MarketFees>, marketCode: string) {
+  return fees[marketCode] ?? DEFAULT_MARKET_FEES[marketCode] ?? DEFAULT_MARKET_FEES.ksa;
+}
+
+function catalogSkuOptions(catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] }): SkuOption[] {
+  const options: SkuOption[] = [];
+  const activeMarkets = catalog.markets;
+  catalog.products.forEach((item) => {
+    activeMarkets.forEach((market) => {
+      if (!item.market_codes.includes(market.code)) return;
+      const detail = item.details?.[market.code] ?? { sku: item.id, cost: 0 };
+      item.offers?.forEach((offer) => {
+        const price = offer.prices[market.code] ?? 0;
+        options.push({
+          key: `${item.type}:${item.id}:${market.code}:${offer.id}`,
+          item,
+          offer,
+          market,
+          sku: detail.sku,
+          costLocal: Number(detail.cost) || 0,
+          priceLocal: price,
+          quantity: offer.quantity,
+          label: item.name_en,
+          priceLabel: `${detail.sku} - ${offer.id} / qty ${offer.quantity} - ${formatMoney(price, market.currency)}`,
+        });
+      });
+    });
+  });
+  catalog.packs.forEach((item) => {
+    activeMarkets.forEach((market) => {
+      if (!item.market_codes.includes(market.code)) return;
+      const detail = item.details?.[market.code] ?? { sku: item.id, cost: 0 };
+      const price = item.prices?.[market.code] ?? 0;
+      options.push({
+        key: `${item.type}:${item.id}:${market.code}:pack`,
+        item,
+        market,
+        sku: detail.sku,
+        costLocal: Number(detail.cost) || 0,
+        priceLocal: price,
+        quantity: 1,
+        label: item.name_en,
+        priceLabel: `${detail.sku} - pack - ${formatMoney(price, market.currency)}`,
+      });
+    });
+  });
+  return options;
+}
+
+function marketSkuRows(catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] }, market: MarketConfig) {
+  return [
+    ...catalog.products.flatMap((item) => {
+      if (!item.market_codes.includes(market.code)) return [];
+      const offer = item.offers?.find((candidate) => candidate.id === "one") ?? item.offers?.[0];
+      if (!offer) return [];
+      const detail = item.details?.[market.code] ?? { sku: item.id, cost: 0 };
+      return [{
+        option: {
+          key: `${item.type}:${item.id}:${market.code}:base`,
+          item,
+          offer,
+          market,
+          sku: detail.sku,
+          costLocal: Number(detail.cost) || 0,
+          priceLocal: offer.prices[market.code] ?? 0,
+          quantity: offer.quantity,
+          label: item.name_en,
+          priceLabel: `${detail.sku} - ${offer.id}`,
+        } satisfies SkuOption,
+      }];
+    }),
+    ...catalog.packs.flatMap((item) => {
+      if (!item.market_codes.includes(market.code)) return [];
+      const detail = item.details?.[market.code] ?? { sku: item.id, cost: 0 };
+      return [{
+        option: {
+          key: `${item.type}:${item.id}:${market.code}:base`,
+          item,
+          market,
+          sku: detail.sku,
+          costLocal: Number(detail.cost) || 0,
+          priceLocal: item.prices?.[market.code] ?? 0,
+          quantity: 1,
+          label: item.name_en,
+          priceLabel: `${detail.sku} - pack`,
+        } satisfies SkuOption,
+      }];
+    }),
+  ];
+}
+
+function calculateCodEconomics(
+  option: SkuOption,
+  fees: MarketFees,
+  confirmationRate: number,
+  deliveryRate: number,
+  costPerLeadUsd: number,
+  leads: number,
+) {
+  const safeLeads = Math.max(leads, 0);
+  const confirmation = Math.max(Math.min(confirmationRate, 100), 0) / 100;
+  const delivery = Math.max(Math.min(deliveryRate, 100), 0) / 100;
+  const priceUsd = option.priceLocal * fees.fxToUsd;
+  const costUsd = option.costLocal * fees.fxToUsd;
+  const confirmed = safeLeads * confirmation;
+  const delivered = confirmed * delivery;
+  const returned = Math.max(confirmed - delivered, 0);
+  const revenueUsd = delivered * priceUsd;
+  const productCostUsd = delivered * costUsd;
+  const callFeesUsd = confirmed * fees.confirmationFeeUsd;
+  const deliveryFeesUsd = delivered * fees.deliveryFeeUsd;
+  const returnFeesUsd = returned * fees.returnFeeUsd;
+  const codFeesUsd = revenueUsd * (fees.codFeePercent / 100);
+  const serviceFeesUsd = callFeesUsd + deliveryFeesUsd + returnFeesUsd + codFeesUsd;
+  const adSpendUsd = safeLeads * costPerLeadUsd;
+  const profitBeforeAdsUsd = revenueUsd - productCostUsd - serviceFeesUsd;
+  const profitUsd = profitBeforeAdsUsd - adSpendUsd;
+
+  return {
+    priceUsd,
+    costUsd,
+    confirmed,
+    delivered,
+    revenueUsd,
+    productCostUsd,
+    serviceFeesUsd,
+    adSpendUsd,
+    profitUsd,
+    maxCplUsd: safeLeads ? profitBeforeAdsUsd / safeLeads : 0,
+  };
+}
+
+function formatUsd(value: number) {
+  return `$${formatNumber(value)}`;
+}
+
+function formatMoney(value: number, currency: string) {
+  return `${formatNumber(value)} ${currency}`;
+}
+
+function formatNumber(value: number) {
+  return (Number.isFinite(value) ? value : 0).toLocaleString(undefined, {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: Math.abs(value) < 10 ? 2 : 0,
+  });
 }
 
 function OrderPreview({ order, onClose }: { order: AdminOrder; onClose: () => void }) {
