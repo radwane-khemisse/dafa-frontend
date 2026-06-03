@@ -28,6 +28,12 @@ const productImages: Record<Product["id"], Record<ProductImageVariant, string>> 
     usage: "/product-images/mini-portable-blender-usage.webp",
     benefits: "/product-images/mini-portable-blender-benefits.webp",
   },
+  electric_meat_grinder: {
+    card: "/product-images/electric-meat-grinder-product-card.webp",
+    hero: "/product-images/electric-meat-grinder-hero.webp",
+    usage: "/product-images/electric-meat-grinder-usage.webp",
+    benefits: "/product-images/electric-meat-grinder-benefits.webp",
+  },
 };
 
 export const packImages: Record<string, string> = {

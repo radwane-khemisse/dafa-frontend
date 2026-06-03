@@ -9,7 +9,7 @@ export type Offer = {
 };
 
 export type Product = {
-  id: "dish_drying_rack" | "rice_dispenser" | "vegetable_cutter" | "mini_portable_blender";
+  id: "dish_drying_rack" | "rice_dispenser" | "vegetable_cutter" | "mini_portable_blender" | "electric_meat_grinder";
   slug: string;
   nameAr: string;
   nameEn: string;
@@ -41,7 +41,11 @@ export const volumeOffers: Offer[] = [
   { id: "three", labelAr: "3 قطع للبيت والأهل", quantity: 3, price: 349, badge: "الأكثر توفيراً" },
 ];
 
-const productDisplayOrder: Product["id"][] = ["vegetable_cutter", "mini_portable_blender", "rice_dispenser", "dish_drying_rack"];
+const productDisplayOrder: Product["id"][] = ["vegetable_cutter", "electric_meat_grinder", "mini_portable_blender", "rice_dispenser", "dish_drying_rack"];
+
+const meatGrinderOffers: Offer[] = [
+  { id: "one", labelAr: "قطعة واحدة", quantity: 1, price: 259 },
+];
 
 const unsortedProducts: Product[] = [
   {
@@ -248,6 +252,58 @@ const unsortedProducts: Product[] = [
       },
     ],
     offers: standardOffers,
+  },
+  {
+    id: "electric_meat_grinder",
+    slug: "electric-meat-grinder",
+    nameAr: "فرامة لحم كهربائية متعددة الاستخدامات",
+    nameEn: "Original Multi-Function Electric Meat Grinder",
+    role: "للكفتة والحشوات وتجهيز الطبخ",
+    headlineAr: "ودك تفرمين اللحم والبصل بدقايق؟ خلي الحشوة تجهز بدون تعب السكين",
+    subheadingAr: "فرامة كهربائية بوعاء ستانلس تساعدك تفرمين اللحم، البصل، الثوم والخضار بسرعة. مناسبة للكفتة، السمبوسة، الحشوات وتجهيز طبخات البيت بدون ما ياخذ التحضير وقتك.",
+    painAr: "الكفتة والسمبوسة والمحاشي تبدأ من نفس التعب: فرم لحم، بصل، ثوم وخضار، وبعدها ريحة على اليد وسكين ولوح تقطيع. الفرامة تختصر التحضير وتخلي الشغل أنظف وأسرع.",
+    emotionAr: "حشوات أسرع، يدين أنظف، وتجهيز طبخات العزايم بدون ما يطول عليك المطبخ",
+    demoHookAr: "قطعي المكونات قطع مناسبة، حطيها في الوعاء، سكري الغطاء واضغطي. خلال ثواني تحصلين فرم جاهز للكفتة أو الحشوة أو التتبيلة.",
+    color: "olive",
+    rating: 4.8,
+    ratingCount: 974,
+    marketCodes: ["ksa"],
+    benefits: [
+      "تفرم اللحم والبصل والثوم والخضار أسرع من التقطيع اليدوي",
+      "وعاء ستانلس يتحمل تجهيز البيت اليومي وأسهل في التنظيف",
+      "تفيدك للكفتة، السمبوسة، الحشوات، الصوصات وتجهيز العزايم",
+      "تحكم أسهل في نعومة الفرم حسب وقت التشغيل، من خشن للحشوات إلى أنعم للتتبيل",
+    ],
+    specs: [
+      "فرامة كهربائية متعددة الاستخدامات للحم والخضار والمكونات اليومية",
+      "وعاء ستانلس وشفرات حادة بتصميم متعدد المستويات لفرم أسرع",
+      "غطاء يحافظ على المكونات داخل الوعاء أثناء التشغيل",
+      "قطع قابلة للفك والتنظيف، مع التنبيه بعدم لمس الشفرات مباشرة",
+    ],
+    included: ["محرك الفرامة", "وعاء ستانلس", "شفرة فرم", "غطاء حماية"],
+    faq: [
+      {
+        question: "هل تفرم اللحم؟",
+        answer: "نعم، مخصصة للحم المقطع قطع مناسبة. الأفضل تشيلين العظم والجلد القاسي وتقطعين اللحم مكعبات قبل التشغيل عشان يعطيك فرم مرتب.",
+      },
+      {
+        question: "تنفع للبصل والثوم؟",
+        answer: "إيه، ممتازة للبصل، الثوم، البقدونس والخضار. تفيدك خصوصا إذا تجهزين كشنة، حشوة أو تتبيلة بسرعة.",
+      },
+      {
+        question: "هل أقدر أحدد نعومة الفرم؟",
+        answer: "تقدرين تتحكمين تقريبا بوقت التشغيل: تشغيل أقصر يعطيك فرم أخشن، وتشغيل أطول يعطيك نتيجة أنعم. لا تعبئين الوعاء فوق الحد عشان النتيجة تطلع متساوية.",
+      },
+      {
+        question: "كيف أنظفها؟",
+        answer: "افصلي الكهرباء، فكي الوعاء والشفرة واغسليهم بحذر. الشفرات حادة، فلا تنظفينها بيدك مباشرة.",
+      },
+      {
+        question: "هل تناسب العزايم؟",
+        answer: "تنفع لتجهيز كمية بيتية بسرعة، خصوصا للكفتة والسمبوسة والحشوات. للكميات الكبيرة جدا، اشتغلي على دفعات عشان تحافظين على قوة الفرم.",
+      },
+    ],
+    offers: meatGrinderOffers,
   },
 ];
 
