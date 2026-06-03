@@ -11,6 +11,7 @@ export type CatalogVisibility = {
   hidden_packs: string[];
   offer_prices: Record<string, Record<string, number>>;
   pack_prices: Record<string, number>;
+  product_warehouses: Record<string, string>;
 };
 
 const defaultVisibility: CatalogVisibility = {
@@ -19,6 +20,7 @@ const defaultVisibility: CatalogVisibility = {
   hidden_packs: [],
   offer_prices: {},
   pack_prices: {},
+  product_warehouses: {},
 };
 
 export async function getCatalogVisibility(): Promise<CatalogVisibility> {
@@ -26,13 +28,21 @@ export async function getCatalogVisibility(): Promise<CatalogVisibility> {
   try {
     const response = await fetch(`${API_BASE_URL}/catalog/visibility?market=${encodeURIComponent(market.code)}`, { cache: "no-store" });
     if (!response.ok) return { ...defaultVisibility, market };
-    const payload = (await response.json()) as { market?: ApiMarket; hidden_products?: string[]; hidden_packs?: string[]; offer_prices?: Record<string, Record<string, number>>; pack_prices?: Record<string, number> };
+    const payload = (await response.json()) as {
+      market?: ApiMarket;
+      hidden_products?: string[];
+      hidden_packs?: string[];
+      offer_prices?: Record<string, Record<string, number>>;
+      pack_prices?: Record<string, number>;
+      product_warehouses?: Record<string, string>;
+    };
     return {
       market: mergeApiMarket(payload.market),
       hidden_products: payload.hidden_products ?? [],
       hidden_packs: payload.hidden_packs ?? [],
       offer_prices: payload.offer_prices ?? {},
       pack_prices: payload.pack_prices ?? {},
+      product_warehouses: payload.product_warehouses ?? {},
     };
   } catch {
     return { ...defaultVisibility, market };
@@ -42,6 +52,7 @@ export async function getCatalogVisibility(): Promise<CatalogVisibility> {
 export function applyOfferPrices(allProducts: Product[], visibility: CatalogVisibility) {
   return allProducts.map((product) => ({
     ...product,
+    warehouse: visibility.product_warehouses[product.id] ?? product.warehouse,
     offers: product.offers.map((offer) => ({
       ...offer,
       price: visibility.offer_prices[product.id]?.[offer.id] ?? offer.price,
@@ -61,8 +72,19 @@ export function visibleProducts(allProducts: Product[], visibility: CatalogVisib
   return allProducts.filter((product) => !hiddenProducts.has(product.id));
 }
 
+export function sameWarehouseProducts(allProducts: Product[], anchor: Product | undefined) {
+  const warehouse = anchor?.warehouse?.trim();
+  if (!warehouse) return allProducts;
+  return allProducts.filter((product) => product.warehouse === warehouse);
+}
+
 export function visiblePacks(allPacks: Pack[], visibility: CatalogVisibility) {
   const hiddenProducts = new Set(visibility.hidden_products);
   const hiddenPacks = new Set(visibility.hidden_packs);
-  return allPacks.filter((pack) => !hiddenPacks.has(pack.id) && pack.productIds.every((productId) => !hiddenProducts.has(productId)));
+  return allPacks.filter((pack) => {
+    if (hiddenPacks.has(pack.id)) return false;
+    if (!pack.productIds.every((productId) => !hiddenProducts.has(productId))) return false;
+    const warehouses = new Set(pack.productIds.map((productId) => visibility.product_warehouses[productId]).filter(Boolean));
+    return warehouses.size <= 1;
+  });
 }

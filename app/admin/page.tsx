@@ -130,6 +130,7 @@ type AdminOffer = {
 type MarketDetail = {
   sku: string;
   cost: number;
+  warehouse?: string;
 };
 
 type MarketConfig = {
@@ -171,6 +172,7 @@ export default function AdminPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [catalog, setCatalog] = useState<{ markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] }>({ markets: [], products: [], packs: [] });
+  const [warehouses, setWarehouses] = useState<Record<string, string[]>>({});
   const [marketFees, setMarketFees] = useState<Record<string, MarketFees>>(DEFAULT_MARKET_FEES);
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
@@ -200,10 +202,11 @@ export default function AdminPage() {
       if (!dashboardResponse.ok || !ordersResponse.ok || !catalogResponse.ok) throw new Error("Login failed or admin API is not ready.");
       const dashboardJson = (await dashboardResponse.json()) as DashboardData;
       const ordersJson = (await ordersResponse.json()) as { orders: AdminOrder[] };
-      const catalogJson = (await catalogResponse.json()) as { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
+      const catalogJson = (await catalogResponse.json()) as { markets: MarketConfig[]; warehouses?: Record<string, string[]>; products: CatalogItem[]; packs: CatalogItem[] };
       setData(dashboardJson);
       setOrders(ordersJson.orders);
       setCatalog(catalogJson);
+      setWarehouses(catalogJson.warehouses ?? {});
     } catch (exc) {
       setError(exc instanceof Error ? exc.message : "Could not load dashboard.");
     } finally {
@@ -345,7 +348,7 @@ export default function AdminPage() {
 
   async function updateCatalogDetail(item: CatalogItem, marketCode: string, detail: MarketDetail) {
     if (!headers || !Number.isFinite(detail.cost) || detail.cost < 0 || !detail.sku.trim()) return;
-    const normalized = { sku: detail.sku.trim(), cost: detail.cost };
+    const normalized = { sku: detail.sku.trim(), cost: detail.cost, warehouse: detail.warehouse?.trim() ?? "" };
     const key = item.type === "product" ? "products" : "packs";
     setCatalog((current) => ({
       ...current,
@@ -426,7 +429,7 @@ export default function AdminPage() {
         {activeTab === "overview" ? <Overview data={data} /> : null}
         {activeTab === "orders" ? <OrdersTab orders={orders} onPreview={setSelectedOrder} /> : null}
         {activeTab === "markets" ? <MarketsTab catalog={catalog} marketFees={marketFees} onFeeUpdate={updateMarketFees} onDetailChange={updateCatalogDetail} onUpdate={updateMarket} /> : null}
-        {activeTab === "catalog" ? <CatalogTab catalog={catalog} marketFees={marketFees} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} onPackPriceChange={updatePackPrice} onDetailChange={updateCatalogDetail} /> : null}
+        {activeTab === "catalog" ? <CatalogTab catalog={catalog} warehouses={warehouses} marketFees={marketFees} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} onPackPriceChange={updatePackPrice} onDetailChange={updateCatalogDetail} /> : null}
         {activeTab === "profit" ? <ProfitCalculator catalog={catalog} marketFees={marketFees} onFeeUpdate={updateMarketFees} /> : null}
       </div>
 
@@ -718,7 +721,7 @@ function MarketsTab({
                           min={0}
                           step="0.01"
                           defaultValue={detail.cost}
-                          onBlur={(event) => onDetailChange(row.option.item, market.code, { sku: detail.sku, cost: Number(event.target.value) })}
+                          onBlur={(event) => onDetailChange(row.option.item, market.code, { sku: detail.sku, cost: Number(event.target.value), warehouse: detail.warehouse })}
                         />
                       </td>
                       <td className="px-3 py-2 font-black">{formatMoney(row.option.priceLocal, market.currency)}</td>
@@ -741,6 +744,7 @@ function MarketsTab({
 
 function CatalogTab({
   catalog,
+  warehouses,
   marketFees,
   onToggle,
   onMarketToggle,
@@ -749,6 +753,7 @@ function CatalogTab({
   onDetailChange,
 }: {
   catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
+  warehouses: Record<string, string[]>;
   marketFees: Record<string, MarketFees>;
   onToggle: (item: CatalogItem, hidden: boolean) => void;
   onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
@@ -758,8 +763,8 @@ function CatalogTab({
 }) {
   return (
     <div className="grid gap-5">
-      <CatalogList title="Products" items={catalog.products} markets={catalog.markets} marketFees={marketFees} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
-      <CatalogList title="Packs" items={catalog.packs} markets={catalog.markets} marketFees={marketFees} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
+      <CatalogList title="Products" items={catalog.products} markets={catalog.markets} warehouses={warehouses} marketFees={marketFees} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
+      <CatalogList title="Packs" items={catalog.packs} markets={catalog.markets} warehouses={warehouses} marketFees={marketFees} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
     </div>
   );
 }
@@ -768,6 +773,7 @@ function CatalogList({
   title,
   items,
   markets,
+  warehouses,
   marketFees,
   onToggle,
   onMarketToggle,
@@ -778,6 +784,7 @@ function CatalogList({
   title: string;
   items: CatalogItem[];
   markets: MarketConfig[];
+  warehouses: Record<string, string[]>;
   marketFees: Record<string, MarketFees>;
   onToggle: (item: CatalogItem, hidden: boolean) => void;
   onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
@@ -857,10 +864,10 @@ function CatalogList({
                 ))}
               </div>
               <div className="mt-4 rounded-lg border border-charcoal/10 p-3">
-                <p className="mb-2 text-xs font-black uppercase text-charcoal/50">SKU and cost</p>
+                <p className="mb-2 text-xs font-black uppercase text-charcoal/50">SKU, cost and warehouse</p>
                 <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {markets.map((market) => {
-                    const detail = item.details?.[market.code] ?? { sku: "", cost: 0 };
+                    const detail = item.details?.[market.code] ?? { sku: "", cost: 0, warehouse: warehouses[market.code]?.[0] };
                     const breakevenOption = catalogBreakevenOption(item, market, detail);
                     const breakeven = breakevenOption
                       ? calculateCodEconomics(breakevenOption, marketFeeFor(marketFees, market.code), DEFAULT_CONFIRMATION_RATE, DEFAULT_DELIVERY_RATE, 0, 100)
@@ -880,7 +887,7 @@ function CatalogList({
                           <input
                             className="focus-ring h-9 min-w-0 rounded-lg border border-charcoal/10 bg-white px-2 text-xs font-black"
                             defaultValue={detail.sku}
-                            onBlur={(event) => onDetailChange(item, market.code, { sku: event.target.value, cost: Number(detail.cost) })}
+                            onBlur={(event) => onDetailChange(item, market.code, { sku: event.target.value, cost: Number(detail.cost), warehouse: detail.warehouse })}
                           />
                         </label>
                         <label className="grid gap-1 text-[11px] font-black uppercase text-charcoal/45">
@@ -891,9 +898,25 @@ function CatalogList({
                             min={0}
                             step="0.01"
                             defaultValue={detail.cost}
-                            onBlur={(event) => onDetailChange(item, market.code, { sku: detail.sku, cost: Number(event.target.value) })}
+                            onBlur={(event) => onDetailChange(item, market.code, { sku: detail.sku, cost: Number(event.target.value), warehouse: detail.warehouse })}
                           />
                         </label>
+                        {item.type === "product" ? (
+                          <label className="grid gap-1 text-[11px] font-black uppercase text-charcoal/45">
+                            Warehouse
+                            <select
+                              className="focus-ring h-9 min-w-0 rounded-lg border border-charcoal/10 bg-white px-2 text-xs font-black"
+                              defaultValue={detail.warehouse ?? warehouses[market.code]?.[0] ?? ""}
+                              onChange={(event) => onDetailChange(item, market.code, { sku: detail.sku, cost: Number(detail.cost), warehouse: event.target.value })}
+                            >
+                              {(warehouses[market.code] ?? []).map((warehouse) => (
+                                <option key={warehouse} value={warehouse}>
+                                  {warehouse}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        ) : null}
                         {breakeven ? (
                           <div className="rounded-lg bg-white px-3 py-2 text-xs">
                             <div className="flex justify-between gap-3">

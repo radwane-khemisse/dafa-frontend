@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FocusEvent } from "react";
 import { PhoneCall, Plus, ShieldCheck, Trash2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -16,6 +16,8 @@ import { formatMarketPrice, prefixMarketHref, type Market } from "@/lib/markets"
 import { useCurrentMarket } from "@/lib/market-client";
 import { makeCartItem, useCartStore, type CartItem } from "@/store/cart-store";
 import { ProductVisual } from "@/components/ui/product-visual";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 const checkoutSchema = z.object({
   name: z.string().trim().min(2, "اكتبي الاسم بشكل صحيح"),
@@ -71,11 +73,13 @@ export function CartDrawer() {
   const [pendingEventId, setPendingEventId] = useState("");
   const [isUpsellOpen, setUpsellOpen] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
+  const [productWarehouses, setProductWarehouses] = useState<Record<string, string>>({});
   const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
   const cartGroups = getCartDisplayGroups(items);
   const productIds = items.map((item) => item.productId);
-  const crossSells = getCrossSells(productIds);
-  const upsellOptions = useMemo(() => getCrossSells(productIds).slice(0, 1), [productIds]);
+  const activeWarehouses = Array.from(new Set(productIds.map((productId) => productWarehouses[productId]).filter(Boolean)));
+  const crossSells = getCrossSells(productIds).filter((product) => activeWarehouses.length === 0 || activeWarehouses.includes(productWarehouses[product.id]));
+  const upsellOptions = crossSells.slice(0, 1);
   const trackingItems = items.map((item) => ({
     product_id: item.productId,
     title_ar: item.titleAr,
@@ -104,6 +108,21 @@ export function CartDrawer() {
       window.visualViewport?.removeEventListener("scroll", updateAppHeight);
     };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetch(`${API_BASE_URL}/catalog/visibility?market=${encodeURIComponent(market.code)}`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { product_warehouses?: Record<string, string> } | null) => {
+        if (active) setProductWarehouses(payload?.product_warehouses ?? {});
+      })
+      .catch(() => {
+        if (active) setProductWarehouses({});
+      });
+    return () => {
+      active = false;
+    };
+  }, [market.code]);
 
   function addCrossSell(product: Product) {
     const item = makeCartItem(product, "one");

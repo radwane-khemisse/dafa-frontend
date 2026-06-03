@@ -27,6 +27,7 @@ export type Product = {
   included: string[];
   faq: { question: string; answer: string }[];
   offers: Offer[];
+  warehouse?: string;
 };
 
 export const standardOffers: Offer[] = [
