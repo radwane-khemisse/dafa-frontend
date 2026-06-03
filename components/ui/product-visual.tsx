@@ -22,6 +22,12 @@ const productImages: Record<Product["id"], Record<ProductImageVariant, string>> 
     usage: "/product-images/vegetables-cutter-usage-section.webp",
     benefits: "/product-images/vegetable-cutter-benefits.webp",
   },
+  mini_portable_blender: {
+    card: "/product-images/mini-portable-blender-product-card.webp",
+    hero: "/product-images/mini-portable-blender-hero.webp",
+    usage: "/product-images/mini-portable-blender-usage.webp",
+    benefits: "/product-images/mini-portable-blender-benefits.webp",
+  },
 };
 
 export const packImages: Record<string, string> = {

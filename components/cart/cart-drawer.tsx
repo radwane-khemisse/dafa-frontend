@@ -78,7 +78,10 @@ export function CartDrawer() {
   const cartGroups = getCartDisplayGroups(items);
   const productIds = items.map((item) => item.productId);
   const activeWarehouses = Array.from(new Set(productIds.map((productId) => productWarehouses[productId]).filter(Boolean)));
-  const crossSells = getCrossSells(productIds).filter((product) => activeWarehouses.length === 0 || activeWarehouses.includes(productWarehouses[product.id]));
+  const crossSells = getCrossSells(productIds).filter((product) => {
+    if (product.marketCodes && !product.marketCodes.includes(market.code)) return false;
+    return activeWarehouses.length === 0 || activeWarehouses.includes(productWarehouses[product.id]);
+  });
   const upsellOptions = crossSells.slice(0, 1);
   const trackingItems = items.map((item) => ({
     product_id: item.productId,

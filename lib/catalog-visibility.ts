@@ -69,7 +69,11 @@ export function applyPackPrices(allPacks: Pack[], visibility: CatalogVisibility)
 
 export function visibleProducts(allProducts: Product[], visibility: CatalogVisibility) {
   const hiddenProducts = new Set(visibility.hidden_products);
-  return allProducts.filter((product) => !hiddenProducts.has(product.id));
+  return allProducts.filter((product) => !hiddenProducts.has(product.id) && isProductMarketVisible(product, visibility.market.code));
+}
+
+export function isProductMarketVisible(product: Product, marketCode: string) {
+  return !product.marketCodes || product.marketCodes.includes(marketCode);
 }
 
 export function sameWarehouseProducts(allProducts: Product[], anchor: Product | undefined) {

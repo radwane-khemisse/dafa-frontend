@@ -7,7 +7,7 @@ import { StickyProductCta } from "@/components/product/sticky-product-cta";
 import { ProductViewTracker } from "@/components/tracking/product-view-tracker";
 import { ProductVisual } from "@/components/ui/product-visual";
 import { products } from "@/data/products";
-import { applyOfferPrices, getCatalogVisibility, sameWarehouseProducts, visibleProducts } from "@/lib/catalog-visibility";
+import { applyOfferPrices, getCatalogVisibility, isProductMarketVisible, sameWarehouseProducts, visibleProducts } from "@/lib/catalog-visibility";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +34,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (!product) notFound();
   if (!visibility.market.active) notFound();
   if (visibility.hidden_products.includes(product.id)) notFound();
+  if (!isProductMarketVisible(product, visibility.market.code)) notFound();
   const crossSells = sameWarehouseProducts(visibleProducts(marketProducts.filter((item) => item.id !== product.id), visibility), product);
   const productFaq = product.faq.filter((item) => !item.question.includes("الدفع"));
 

@@ -9,7 +9,7 @@ export type Offer = {
 };
 
 export type Product = {
-  id: "dish_drying_rack" | "rice_dispenser" | "vegetable_cutter";
+  id: "dish_drying_rack" | "rice_dispenser" | "vegetable_cutter" | "mini_portable_blender";
   slug: string;
   nameAr: string;
   nameEn: string;
@@ -28,6 +28,7 @@ export type Product = {
   faq: { question: string; answer: string }[];
   offers: Offer[];
   warehouse?: string;
+  marketCodes?: string[];
 };
 
 export const standardOffers: Offer[] = [
@@ -40,7 +41,7 @@ export const volumeOffers: Offer[] = [
   { id: "three", labelAr: "3 قطع للبيت والأهل", quantity: 3, price: 349, badge: "الأكثر توفيراً" },
 ];
 
-const productDisplayOrder: Product["id"][] = ["vegetable_cutter", "rice_dispenser", "dish_drying_rack"];
+const productDisplayOrder: Product["id"][] = ["vegetable_cutter", "mini_portable_blender", "rice_dispenser", "dish_drying_rack"];
 
 const unsortedProducts: Product[] = [
   {
@@ -195,6 +196,58 @@ const unsortedProducts: Product[] = [
       },
     ],
     offers: volumeOffers,
+  },
+  {
+    id: "mini_portable_blender",
+    slug: "mini-portable-blender-pink",
+    nameAr: "خلاط عصير محمول ميني وردي",
+    nameEn: "Mini Portable Blender Mixer Pink",
+    role: "عصيرك معك في الدوام والنادي",
+    headlineAr: "ودك بعصير طازج بدون خلاط كبير؟ اخلطيه واشربيه من نفس الكوب",
+    subheadingAr: "خلاط وردي محمول يشحن USB، مناسب لكوب سموذي، بروتين أو عصير سريع. حطي فواكه طرية مع سائل، اضغطي، وخذي مشروبك معك بدون ما تطلعين الخلاط الكبير.",
+    painAr: "تبين عصير سريع الصباح، بس الخلاط الكبير يكسل: تركيبه، غسيله، وصوته. هذا الكوب يحلها لك إذا تبين مشروب خفيف للدوام، النادي أو بعد الغداء.",
+    emotionAr: "مشروب طازج أسرع، كوب واحد تغسلينه، وشكل وردي مرتب في الشنطة أو على المكتب",
+    demoHookAr: "قطعي الفاكهة قطع صغيرة، زيدي ماء أو حليب، سكري الغطاء واضغطي. خلال ثواني يصير عندك كوب جاهز تشربينه بنفس اللحظة.",
+    color: "gold",
+    rating: 4.7,
+    ratingCount: 812,
+    marketCodes: ["ksa"],
+    benefits: [
+      "يختصر عليك مشروب سريع بدون تشغيل الخلاط الكبير كل مرة",
+      "USB قابل للشحن، مناسب للبيت، الدوام، النادي أو السفر",
+      "كوب شخصي يكفي مشروبك بدون هدر وبدون أوعية كثيرة",
+      "سهل التنظيف: ماء وصابون وتشغيل سريع بدل تفكيك خلاط كامل",
+    ],
+    specs: [
+      "تصميم محمول بحجم كوب شخصي للمشروبات اليومية",
+      "شفرات ستانلس لتحضير السموذي، العصائر الخفيفة والبروتين",
+      "شحن USB ويستخدم بدون سلك بعد الشحن",
+      "أفضل نتيجة مع فواكه طرية وسوائل، وليس مخصصا للثلج الكبير أو الخلط الثقيل",
+    ],
+    included: ["كوب خلاط محمول", "غطاء محكم", "كيبل شحن USB"],
+    faq: [
+      {
+        question: "ينفع للثلج؟",
+        answer: "الأفضل تستخدمينه للفواكه الطرية مع ماء أو حليب. إذا تبين برودة، استخدمي قطع صغيرة جدا أو مشروب بارد، وتجنبي الثلج الكبير عشان يحافظ على عمر الشفرات.",
+      },
+      {
+        question: "هل أشرب من نفس الكوب؟",
+        answer: "إيه، الفكرة أنه كوب وخلاط بنفس الوقت. تخلطين مشروبك وتشربينه بدون نقل بين أوعية.",
+      },
+      {
+        question: "كيف أنظفه؟",
+        answer: "حطي ماء مع نقطة صابون، شغليه ثواني، وبعدها اشطفيه. انتبهي من لمس الشفرات مباشرة.",
+      },
+      {
+        question: "مناسب للدوام أو النادي؟",
+        answer: "نعم، حجمه شخصي ويشحن USB، فيناسب مشروب سريع قبل الدوام، بعد التمرين أو وقت الطلعة.",
+      },
+      {
+        question: "وش أقدر أسوي فيه؟",
+        answer: "سموذي فواكه، عصير خفيف، بروتين شيك أو خلطات بسيطة. قصي المكونات قطع صغيرة وزيدي سائل عشان يعطيك نتيجة أنعم.",
+      },
+    ],
+    offers: standardOffers,
   },
 ];
 
