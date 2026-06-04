@@ -377,10 +377,7 @@ export default function AdminPage() {
 
   async function updateProductUpsells(item: CatalogItem, marketCode: string, productId: string, checked: boolean) {
     if (!headers || item.type !== "product") return;
-    const currentIds = item.upsell_product_ids?.[marketCode] ?? [];
-    const nextProductIds = checked
-      ? Array.from(new Set([...currentIds, productId]))
-      : currentIds.filter((id) => id !== productId);
+    const nextProductIds = checked ? [productId] : [];
 
     setCatalog((current) => ({
       ...current,
@@ -978,6 +975,7 @@ function CatalogList({
                   <div className="grid min-w-0 gap-3 md:grid-cols-2">
                     {markets.map((market) => {
                       const selectedIds = item.upsell_product_ids?.[market.code] ?? [];
+                      const selectedId = selectedIds[0] ?? "";
                       const sourceWarehouse = productWarehouse(item, market.code);
                       const eligibleProducts = allProducts.filter((product) => {
                         if (product.id === item.id || product.hidden) return false;
@@ -993,13 +991,24 @@ function CatalogList({
                           </div>
                           {eligibleProducts.length ? (
                             <div className="grid gap-2">
+                              <label className="flex items-start gap-2 rounded-lg bg-white px-3 py-2 text-xs font-bold">
+                                <input
+                                  type="radio"
+                                  name={`upsell-${item.id}-${market.code}`}
+                                  className="mt-0.5"
+                                  checked={!selectedId}
+                                  onChange={() => onUpsellChange(item, market.code, "", false)}
+                                />
+                                <span className="font-black text-charcoal/55">No popup upsell</span>
+                              </label>
                               {eligibleProducts.map((product) => (
                                 <label key={product.id} className="flex items-start gap-2 rounded-lg bg-white px-3 py-2 text-xs font-bold">
                                   <input
-                                    type="checkbox"
+                                    type="radio"
+                                    name={`upsell-${item.id}-${market.code}`}
                                     className="mt-0.5"
-                                    checked={selectedIds.includes(product.id)}
-                                    onChange={(event) => onUpsellChange(item, market.code, product.id, event.target.checked)}
+                                    checked={selectedId === product.id}
+                                    onChange={() => onUpsellChange(item, market.code, product.id, true)}
                                   />
                                   <span className="min-w-0">
                                     <span className="block truncate font-black">{product.name_en}</span>
