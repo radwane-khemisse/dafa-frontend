@@ -74,15 +74,28 @@ export function CartDrawer() {
   const [isUpsellOpen, setUpsellOpen] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
   const [productWarehouses, setProductWarehouses] = useState<Record<string, string>>({});
+  const [productUpsells, setProductUpsells] = useState<Record<string, string[]>>({});
+  const [hiddenProducts, setHiddenProducts] = useState<string[]>([]);
   const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
   const cartGroups = getCartDisplayGroups(items);
   const productIds = items.map((item) => item.productId);
+  const cartProductIds = new Set<string>(productIds);
   const activeWarehouses = Array.from(new Set(productIds.map((productId) => productWarehouses[productId]).filter(Boolean)));
   const crossSells = getCrossSells(productIds).filter((product) => {
     if (product.marketCodes && !product.marketCodes.includes(market.code)) return false;
     return activeWarehouses.length === 0 || activeWarehouses.includes(productWarehouses[product.id]);
   });
-  const upsellOptions = crossSells.slice(0, 1);
+  const hiddenProductIds = new Set(hiddenProducts);
+  const configuredUpsellIds = Array.from(new Set(productIds.flatMap((productId) => productUpsells[productId] ?? [])));
+  const upsellOptions = configuredUpsellIds
+    .filter((productId) => !cartProductIds.has(productId) && !hiddenProductIds.has(productId))
+    .map((productId) => getProductById(productId as Product["id"]))
+    .filter((product): product is Product => Boolean(product))
+    .filter((product) => {
+      if (product.marketCodes && !product.marketCodes.includes(market.code)) return false;
+      return activeWarehouses.length === 0 || activeWarehouses.includes(productWarehouses[product.id]);
+    })
+    .slice(0, 1);
   const trackingItems = items.map((item) => ({
     product_id: item.productId,
     title_ar: item.titleAr,
@@ -116,11 +129,17 @@ export function CartDrawer() {
     let active = true;
     fetch(`${API_BASE_URL}/catalog/visibility?market=${encodeURIComponent(market.code)}`)
       .then((response) => (response.ok ? response.json() : null))
-      .then((payload: { product_warehouses?: Record<string, string> } | null) => {
-        if (active) setProductWarehouses(payload?.product_warehouses ?? {});
+      .then((payload: { hidden_products?: string[]; product_warehouses?: Record<string, string>; product_upsells?: Record<string, string[]> } | null) => {
+        if (!active) return;
+        setHiddenProducts(payload?.hidden_products ?? []);
+        setProductWarehouses(payload?.product_warehouses ?? {});
+        setProductUpsells(payload?.product_upsells ?? {});
       })
       .catch(() => {
-        if (active) setProductWarehouses({});
+        if (!active) return;
+        setHiddenProducts([]);
+        setProductWarehouses({});
+        setProductUpsells({});
       });
     return () => {
       active = false;

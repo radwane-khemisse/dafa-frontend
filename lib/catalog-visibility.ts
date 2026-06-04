@@ -12,6 +12,7 @@ export type CatalogVisibility = {
   offer_prices: Record<string, Record<string, number>>;
   pack_prices: Record<string, number>;
   product_warehouses: Record<string, string>;
+  product_upsells: Record<string, string[]>;
 };
 
 const defaultVisibility: CatalogVisibility = {
@@ -21,6 +22,7 @@ const defaultVisibility: CatalogVisibility = {
   offer_prices: {},
   pack_prices: {},
   product_warehouses: {},
+  product_upsells: {},
 };
 
 export async function getCatalogVisibility(): Promise<CatalogVisibility> {
@@ -35,6 +37,7 @@ export async function getCatalogVisibility(): Promise<CatalogVisibility> {
       offer_prices?: Record<string, Record<string, number>>;
       pack_prices?: Record<string, number>;
       product_warehouses?: Record<string, string>;
+      product_upsells?: Record<string, string[]>;
     };
     return {
       market: mergeApiMarket(payload.market),
@@ -43,6 +46,7 @@ export async function getCatalogVisibility(): Promise<CatalogVisibility> {
       offer_prices: payload.offer_prices ?? {},
       pack_prices: payload.pack_prices ?? {},
       product_warehouses: payload.product_warehouses ?? {},
+      product_upsells: payload.product_upsells ?? {},
     };
   } catch {
     return { ...defaultVisibility, market };

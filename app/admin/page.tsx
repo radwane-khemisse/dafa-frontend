@@ -115,6 +115,7 @@ type CatalogItem = {
   hidden: boolean;
   market_codes: string[];
   product_ids?: string[];
+  upsell_product_ids?: Record<string, string[]>;
   offers?: AdminOffer[];
   prices?: Record<string, number>;
   details?: Record<string, MarketDetail>;
@@ -374,6 +375,38 @@ export default function AdminPage() {
     }
   }
 
+  async function updateProductUpsells(item: CatalogItem, marketCode: string, productId: string, checked: boolean) {
+    if (!headers || item.type !== "product") return;
+    const currentIds = item.upsell_product_ids?.[marketCode] ?? [];
+    const nextProductIds = checked
+      ? Array.from(new Set([...currentIds, productId]))
+      : currentIds.filter((id) => id !== productId);
+
+    setCatalog((current) => ({
+      ...current,
+      products: current.products.map((product) =>
+        product.id === item.id
+          ? { ...product, upsell_product_ids: { ...product.upsell_product_ids, [marketCode]: nextProductIds } }
+          : product,
+      ),
+    }));
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/catalog/products/${item.id}/upsells`, {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({ market_code: marketCode, product_ids: nextProductIds }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.detail || "Could not update product upsells.");
+      }
+      void loadDashboard();
+    } catch (exc) {
+      setError(exc instanceof Error ? exc.message : "Could not update product upsells.");
+      void loadDashboard();
+    }
+  }
+
   if (!auth || !data) {
     return (
       <section dir="ltr" className="min-h-[70vh] bg-[#F6F4EC] px-4 py-12 text-charcoal">
@@ -429,7 +462,7 @@ export default function AdminPage() {
         {activeTab === "overview" ? <Overview data={data} /> : null}
         {activeTab === "orders" ? <OrdersTab orders={orders} onPreview={setSelectedOrder} /> : null}
         {activeTab === "markets" ? <MarketsTab catalog={catalog} marketFees={marketFees} onFeeUpdate={updateMarketFees} onDetailChange={updateCatalogDetail} onUpdate={updateMarket} /> : null}
-        {activeTab === "catalog" ? <CatalogTab catalog={catalog} warehouses={warehouses} marketFees={marketFees} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} onPackPriceChange={updatePackPrice} onDetailChange={updateCatalogDetail} /> : null}
+        {activeTab === "catalog" ? <CatalogTab catalog={catalog} warehouses={warehouses} marketFees={marketFees} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} onPackPriceChange={updatePackPrice} onDetailChange={updateCatalogDetail} onUpsellChange={updateProductUpsells} /> : null}
         {activeTab === "profit" ? <ProfitCalculator catalog={catalog} marketFees={marketFees} onFeeUpdate={updateMarketFees} /> : null}
       </div>
 
@@ -751,6 +784,7 @@ function CatalogTab({
   onOfferPriceChange,
   onPackPriceChange,
   onDetailChange,
+  onUpsellChange,
 }: {
   catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
   warehouses: Record<string, string[]>;
@@ -760,11 +794,12 @@ function CatalogTab({
   onOfferPriceChange: (item: CatalogItem, offer: AdminOffer, marketCode: string, price: number) => void;
   onPackPriceChange: (item: CatalogItem, marketCode: string, price: number) => void;
   onDetailChange: (item: CatalogItem, marketCode: string, detail: MarketDetail) => void;
+  onUpsellChange: (item: CatalogItem, marketCode: string, productId: string, checked: boolean) => void;
 }) {
   return (
     <div className="grid gap-5">
-      <CatalogList title="Products" items={catalog.products} markets={catalog.markets} warehouses={warehouses} marketFees={marketFees} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
-      <CatalogList title="Packs" items={catalog.packs} markets={catalog.markets} warehouses={warehouses} marketFees={marketFees} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} />
+      <CatalogList title="Products" items={catalog.products} allProducts={catalog.products} markets={catalog.markets} warehouses={warehouses} marketFees={marketFees} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} onUpsellChange={onUpsellChange} />
+      <CatalogList title="Packs" items={catalog.packs} allProducts={catalog.products} markets={catalog.markets} warehouses={warehouses} marketFees={marketFees} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} onUpsellChange={onUpsellChange} />
     </div>
   );
 }
@@ -772,6 +807,7 @@ function CatalogTab({
 function CatalogList({
   title,
   items,
+  allProducts,
   markets,
   warehouses,
   marketFees,
@@ -780,9 +816,11 @@ function CatalogList({
   onOfferPriceChange,
   onPackPriceChange,
   onDetailChange,
+  onUpsellChange,
 }: {
   title: string;
   items: CatalogItem[];
+  allProducts: CatalogItem[];
   markets: MarketConfig[];
   warehouses: Record<string, string[]>;
   marketFees: Record<string, MarketFees>;
@@ -791,6 +829,7 @@ function CatalogList({
   onOfferPriceChange: (item: CatalogItem, offer: AdminOffer, marketCode: string, price: number) => void;
   onPackPriceChange: (item: CatalogItem, marketCode: string, price: number) => void;
   onDetailChange: (item: CatalogItem, marketCode: string, detail: MarketDetail) => void;
+  onUpsellChange: (item: CatalogItem, marketCode: string, productId: string, checked: boolean) => void;
 }) {
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
 
@@ -933,6 +972,53 @@ function CatalogList({
                   })}
                 </div>
               </div>
+              {item.type === "product" ? (
+                <div className="mt-4 rounded-lg border border-charcoal/10 p-3">
+                  <p className="mb-2 text-xs font-black uppercase text-charcoal/50">Checkout popup upsell</p>
+                  <div className="grid min-w-0 gap-3 md:grid-cols-2">
+                    {markets.map((market) => {
+                      const selectedIds = item.upsell_product_ids?.[market.code] ?? [];
+                      const sourceWarehouse = productWarehouse(item, market.code);
+                      const eligibleProducts = allProducts.filter((product) => {
+                        if (product.id === item.id || product.hidden) return false;
+                        if (!product.market_codes.includes(market.code)) return false;
+                        return productWarehouse(product, market.code) === sourceWarehouse;
+                      });
+
+                      return (
+                        <div key={market.code} className="rounded-lg bg-warm-50 p-3">
+                          <div className="mb-2 flex items-center justify-between gap-2">
+                            <p className="text-xs font-black uppercase text-charcoal/55">{market.code}</p>
+                            <p className="truncate text-[11px] font-bold text-charcoal/45">{sourceWarehouse || "No warehouse"}</p>
+                          </div>
+                          {eligibleProducts.length ? (
+                            <div className="grid gap-2">
+                              {eligibleProducts.map((product) => (
+                                <label key={product.id} className="flex items-start gap-2 rounded-lg bg-white px-3 py-2 text-xs font-bold">
+                                  <input
+                                    type="checkbox"
+                                    className="mt-0.5"
+                                    checked={selectedIds.includes(product.id)}
+                                    onChange={(event) => onUpsellChange(item, market.code, product.id, event.target.checked)}
+                                  />
+                                  <span className="min-w-0">
+                                    <span className="block truncate font-black">{product.name_en}</span>
+                                    <span className="block truncate text-charcoal/45">{product.id}</span>
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="rounded-lg bg-white px-3 py-2 text-xs font-bold text-charcoal/45">
+                              No same-warehouse products available.
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
               {item.offers?.length ? (
                 <div className="mt-4 overflow-x-auto rounded-lg border border-charcoal/10">
                   <table className="w-full min-w-[880px] border-collapse text-left text-xs">
@@ -1352,6 +1438,10 @@ function catalogBreakevenOption(item: CatalogItem, market: MarketConfig, detail:
     label: item.name_en,
     priceLabel: `${detail.sku} - pack`,
   };
+}
+
+function productWarehouse(item: CatalogItem, marketCode: string) {
+  return item.details?.[marketCode]?.warehouse?.trim() ?? "";
 }
 
 function calculateCodEconomics(
