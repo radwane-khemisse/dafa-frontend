@@ -3,7 +3,7 @@ declare global {
     fbq?: (...args: unknown[]) => void;
     ttq?: {
       track: (...args: unknown[]) => void;
-      page: () => void;
+      page: (...args: unknown[]) => void;
       identify?: (...args: unknown[]) => void;
       enableCookie?: () => void;
     };
@@ -62,7 +62,7 @@ const META_EVENTS: Record<string, string> = {
 };
 
 const TIKTOK_EVENTS: Record<string, string> = {
-  PageView: "Pageview",
+  PageView: "PageView",
   ViewProduct: "ViewContent",
   ViewContent: "ViewContent",
   AddToCart: "AddToCart",
@@ -89,6 +89,15 @@ const SNAP_EVENTS: Record<string, string> = {
 
 const debug = process.env.NEXT_PUBLIC_ENABLE_PIXEL_DEBUG === "true";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const trackedEvents = new Set<string>();
+const MARKET_CURRENCY_CODES: Record<string, string> = {
+  ksa: "SAR",
+  kwt: "KWD",
+  uae: "AED",
+  qat: "QAR",
+  bhr: "BHD",
+  omn: "OMR",
+};
 
 function getSessionId() {
   if (typeof window === "undefined") return "";
@@ -125,6 +134,12 @@ function getParam(params: URLSearchParams, names: string[]) {
     if (value) return value;
   }
   return "";
+}
+
+function normalizeTrackingCurrency(currency: string | undefined) {
+  if (currency && /^[A-Z]{3}$/.test(currency)) return currency;
+  const marketCode = typeof window === "undefined" ? "" : window.location.pathname.split("/").filter(Boolean)[0];
+  return MARKET_CURRENCY_CODES[marketCode] || "SAR";
 }
 
 function getMetaFbc(params: URLSearchParams) {
@@ -172,17 +187,29 @@ export function collectAttribution() {
 export function trackEvent(eventName: CanonicalTrackingEvent, payload: TrackingPayload = {}) {
   if (typeof window === "undefined") return;
   const eventId = payload.eventId || `${eventName.toLowerCase()}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  const dedupeKey = `${eventName}:${eventId}`;
+  if (trackedEvents.has(dedupeKey)) {
+    if (debug) {
+      console.info("[tracking] duplicate skipped", eventName, { eventId });
+    }
+    return;
+  }
+  trackedEvents.add(dedupeKey);
+
   const contentIds = payload.contentIds || (payload.productId ? [payload.productId] : undefined);
+  const currency = normalizeTrackingCurrency(payload.currency);
   const pixelPayload = {
     value: payload.value,
-    currency: payload.currency || "ريال",
+    currency,
     content_ids: contentIds,
     contents: payload.items?.map((item) => ({
       id: item.product_id,
+      content_name: item.title_ar,
       quantity: item.quantity || 1,
       item_price: item.unit_price || item.total_price,
     })),
     content_name: payload.contentName,
+    order_id: typeof payload.metadata?.order_id === "string" ? payload.metadata.order_id : undefined,
   };
   const cleanPixelPayload = Object.fromEntries(
     Object.entries(pixelPayload).filter(([, value]) => value !== undefined && value !== null),
@@ -214,7 +241,11 @@ function trackBrowserPixels(eventName: CanonicalTrackingEvent, payload: Record<s
   }
 
   if (window.ttq) {
-    window.ttq.track(tiktokEvent, { ...payload, event_id: eventId });
+    if (eventName === "PageView") {
+      window.ttq.page({ event_id: eventId });
+    } else {
+      window.ttq.track(tiktokEvent, buildTikTokPixelPayload(payload, eventId));
+    }
   }
 
   if (window.snaptr) {
@@ -224,6 +255,33 @@ function trackBrowserPixels(eventName: CanonicalTrackingEvent, payload: Record<s
       transaction_id: eventName === "Purchase" ? eventId : undefined,
     });
   }
+}
+
+function buildTikTokPixelPayload(payload: Record<string, unknown>, eventId: string) {
+  const contents = Array.isArray(payload.contents)
+    ? payload.contents
+        .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object")
+        .map((item) => ({
+          content_id: item.id,
+          content_name: item.content_name,
+          content_type: "product",
+          quantity: item.quantity,
+          price: item.item_price,
+        }))
+    : undefined;
+
+  return Object.fromEntries(
+    Object.entries({
+      event_id: eventId,
+      value: payload.value,
+      currency: payload.currency,
+      content_type: "product",
+      content_id: Array.isArray(payload.content_ids) ? payload.content_ids[0] : undefined,
+      content_name: payload.content_name,
+      contents,
+      order_id: payload.order_id,
+    }).filter(([, value]) => value !== undefined && value !== null && value !== ""),
+  );
 }
 
 function trackServerEvent(eventName: CanonicalTrackingEvent, payload: TrackingPayload & { eventId: string; contentIds?: string[] }) {
@@ -237,7 +295,7 @@ function trackServerEvent(eventName: CanonicalTrackingEvent, payload: TrackingPa
     content_ids: payload.contentIds || [],
     items: payload.items || [],
     value: payload.value,
-    currency: payload.currency || "ريال",
+    currency: normalizeTrackingCurrency(payload.currency),
     name: payload.name,
     phone: payload.phone,
     metadata: payload.metadata,
