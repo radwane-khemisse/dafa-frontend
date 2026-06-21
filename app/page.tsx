@@ -1,12 +1,10 @@
 import { ArrowLeft, Banknote, CheckCircle2, ClipboardCheck, PhoneCall, Ruler, ShieldCheck, Sparkles, Wrench } from "lucide-react";
-import { PackCard } from "@/components/pack/pack-card";
 import { ProductCard } from "@/components/product/product-card";
 import { ReviewCard } from "@/components/product/review-card";
 import { ButtonLink } from "@/components/ui/button";
 import { KitchenHeroVisual } from "@/components/ui/product-visual";
-import { packs } from "@/data/packs";
 import { products } from "@/data/products";
-import { applyOfferPrices, applyPackPrices, getCatalogVisibility, visiblePacks, visibleProducts } from "@/lib/catalog-visibility";
+import { applyOfferPrices, getCatalogVisibility, visibleProducts } from "@/lib/catalog-visibility";
 import { notFound } from "next/navigation";
 
 export default async function HomePage() {
@@ -14,7 +12,6 @@ export default async function HomePage() {
   if (!visibility.market.active) notFound();
   const marketProducts = applyOfferPrices(products, visibility);
   const listedProducts = visibleProducts(marketProducts, visibility);
-  const listedPacks = visiblePacks(applyPackPrices(packs, visibility), visibility);
 
   return (
     <>
@@ -52,7 +49,6 @@ export default async function HomePage() {
                 شوفي العروض
                 <ArrowLeft size={18} />
               </ButtonLink>
-              <ButtonLink href="/packs" variant="outline">وفري مع الباقات</ButtonLink>
             </div>
           </div>
           <KitchenHeroVisual />
@@ -75,24 +71,6 @@ export default async function HomePage() {
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="container-shell py-16">
-        <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div>
-            <p className="text-sm font-black text-olive">باقات التوفير</p>
-            <h2 className="mt-2 max-w-3xl text-3xl font-black">خذي منتجين يكملون بعض ووفري بدل طلبين منفصلين</h2>
-            <p className="mt-3 max-w-2xl text-sm font-bold leading-7 text-charcoal/62">
-              كل باقة تجمع منتجين يخدمون نفس لحظة الطبخ أو الترتيب، بسعر أقل من شرائهم منفردين.
-            </p>
-          </div>
-          <ButtonLink href="/packs" variant="outline">عرض كل الباقات</ButtonLink>
-        </div>
-        <div className="grid gap-5 xl:grid-cols-2">
-          {listedPacks.map((pack) => (
-            <PackCard key={pack.id} pack={pack} />
-          ))}
         </div>
       </section>
 
@@ -121,7 +99,7 @@ export default async function HomePage() {
           <p className="text-sm font-black text-gold">طلب مريح وواضح</p>
           <h2 className="mt-3 text-3xl font-black leading-tight">اختاري المنتج، خذي العرض الأنسب، وادفعي عند الاستلام</h2>
           <p className="mt-4 leading-8 text-white/75">
-            نوضح لك الفائدة والسعر والمحتويات قبل الشحن. وإذا اخترتِ باقة أو كمية أكثر، يكون السبب توفير واستخدام واضح يناسب بيتك.
+            نوضح لك الفائدة والسعر والمحتويات قبل الشحن. وإذا اخترتِ كمية أكثر، يكون السبب توفير واستخدام واضح يناسب بيتك.
           </p>
         </div>
         <div className="grid gap-4">

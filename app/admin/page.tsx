@@ -107,7 +107,7 @@ type AdminOrder = {
 };
 
 type CatalogItem = {
-  type: "product" | "pack";
+  type: "product";
   id: string;
   slug: string;
   name_ar: string;
@@ -117,7 +117,6 @@ type CatalogItem = {
   product_ids?: string[];
   upsell_product_ids?: Record<string, string[]>;
   offers?: AdminOffer[];
-  prices?: Record<string, number>;
   details?: Record<string, MarketDetail>;
 };
 
@@ -172,7 +171,7 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
   const [data, setData] = useState<DashboardData | null>(null);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
-  const [catalog, setCatalog] = useState<{ markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] }>({ markets: [], products: [], packs: [] });
+  const [catalog, setCatalog] = useState<{ markets: MarketConfig[]; products: CatalogItem[] }>({ markets: [], products: [] });
   const [warehouses, setWarehouses] = useState<Record<string, string[]>>({});
   const [marketFees, setMarketFees] = useState<Record<string, MarketFees>>(DEFAULT_MARKET_FEES);
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
@@ -203,7 +202,7 @@ export default function AdminPage() {
       if (!dashboardResponse.ok || !ordersResponse.ok || !catalogResponse.ok) throw new Error("Login failed or admin API is not ready.");
       const dashboardJson = (await dashboardResponse.json()) as DashboardData;
       const ordersJson = (await ordersResponse.json()) as { orders: AdminOrder[] };
-      const catalogJson = (await catalogResponse.json()) as { markets: MarketConfig[]; warehouses?: Record<string, string[]>; products: CatalogItem[]; packs: CatalogItem[] };
+      const catalogJson = (await catalogResponse.json()) as { markets: MarketConfig[]; warehouses?: Record<string, string[]>; products: CatalogItem[] };
       setData(dashboardJson);
       setOrders(ordersJson.orders);
       setCatalog(catalogJson);
@@ -234,7 +233,6 @@ export default function AdminPage() {
     setCatalog((current) => ({
       ...current,
       products: current.products.map((product) => (product.type === item.type && product.id === item.id ? { ...product, hidden } : product)),
-      packs: current.packs.map((pack) => (pack.type === item.type && pack.id === item.id ? { ...pack, hidden } : pack)),
     }));
     try {
       const response = await fetch(`${API_BASE_URL}/admin/catalog/${item.type}/${item.id}/visibility`, {
@@ -279,7 +277,6 @@ export default function AdminPage() {
     setCatalog((current) => ({
       ...current,
       products: current.products.map((product) => (product.type === item.type && product.id === item.id ? { ...product, market_codes: nextMarketCodes } : product)),
-      packs: current.packs.map((pack) => (pack.type === item.type && pack.id === item.id ? { ...pack, market_codes: nextMarketCodes } : pack)),
     }));
     try {
       const response = await fetch(`${API_BASE_URL}/admin/catalog/${item.type}/${item.id}/markets`, {
@@ -325,43 +322,17 @@ export default function AdminPage() {
     }
   }
 
-  async function updatePackPrice(item: CatalogItem, marketCode: string, price: number) {
-    if (!headers || item.type !== "pack" || !Number.isFinite(price) || price < 0) return;
-    setCatalog((current) => ({
-      ...current,
-      packs: current.packs.map((pack) =>
-        pack.id === item.id ? { ...pack, prices: { ...pack.prices, [marketCode]: price } } : pack,
-      ),
-    }));
-    try {
-      const response = await fetch(`${API_BASE_URL}/admin/catalog/packs/${item.id}/prices`, {
-        method: "POST",
-        headers: { ...headers, "Content-Type": "application/json" },
-        body: JSON.stringify({ market_code: marketCode, price }),
-      });
-      if (!response.ok) throw new Error("Could not update pack price.");
-      void loadDashboard();
-    } catch (exc) {
-      setError(exc instanceof Error ? exc.message : "Could not update pack price.");
-      void loadDashboard();
-    }
-  }
-
   async function updateCatalogDetail(item: CatalogItem, marketCode: string, detail: MarketDetail) {
     if (!headers || !Number.isFinite(detail.cost) || detail.cost < 0 || !detail.sku.trim()) return;
     const normalized = { sku: detail.sku.trim(), cost: detail.cost, warehouse: detail.warehouse?.trim() ?? "" };
-    const key = item.type === "product" ? "products" : "packs";
     setCatalog((current) => ({
       ...current,
-      [key]: current[key].map((catalogItem) =>
+      products: current.products.map((catalogItem) =>
         catalogItem.id === item.id ? { ...catalogItem, details: { ...catalogItem.details, [marketCode]: normalized } } : catalogItem,
       ),
     }));
     try {
-      const endpoint =
-        item.type === "product"
-          ? `${API_BASE_URL}/admin/catalog/products/${item.id}/details`
-          : `${API_BASE_URL}/admin/catalog/packs/${item.id}/details`;
+      const endpoint = `${API_BASE_URL}/admin/catalog/products/${item.id}/details`;
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },
@@ -459,7 +430,7 @@ export default function AdminPage() {
         {activeTab === "overview" ? <Overview data={data} /> : null}
         {activeTab === "orders" ? <OrdersTab orders={orders} onPreview={setSelectedOrder} /> : null}
         {activeTab === "markets" ? <MarketsTab catalog={catalog} marketFees={marketFees} onFeeUpdate={updateMarketFees} onDetailChange={updateCatalogDetail} onUpdate={updateMarket} /> : null}
-        {activeTab === "catalog" ? <CatalogTab catalog={catalog} warehouses={warehouses} marketFees={marketFees} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} onPackPriceChange={updatePackPrice} onDetailChange={updateCatalogDetail} onUpsellChange={updateProductUpsells} /> : null}
+        {activeTab === "catalog" ? <CatalogTab catalog={catalog} warehouses={warehouses} marketFees={marketFees} onToggle={updateCatalogItem} onMarketToggle={updateCatalogMarkets} onOfferPriceChange={updateOfferPrice} onDetailChange={updateCatalogDetail} onUpsellChange={updateProductUpsells} /> : null}
         {activeTab === "profit" ? <ProfitCalculator catalog={catalog} marketFees={marketFees} onFeeUpdate={updateMarketFees} /> : null}
       </div>
 
@@ -677,7 +648,7 @@ function MarketsTab({
   onDetailChange,
   onUpdate,
 }: {
-  catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
+  catalog: { markets: MarketConfig[]; products: CatalogItem[] };
   marketFees: Record<string, MarketFees>;
   onFeeUpdate: (marketCode: string, next: Partial<MarketFees>) => void;
   onDetailChange: (item: CatalogItem, marketCode: string, detail: MarketDetail) => void;
@@ -779,24 +750,21 @@ function CatalogTab({
   onToggle,
   onMarketToggle,
   onOfferPriceChange,
-  onPackPriceChange,
   onDetailChange,
   onUpsellChange,
 }: {
-  catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
+  catalog: { markets: MarketConfig[]; products: CatalogItem[] };
   warehouses: Record<string, string[]>;
   marketFees: Record<string, MarketFees>;
   onToggle: (item: CatalogItem, hidden: boolean) => void;
   onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
   onOfferPriceChange: (item: CatalogItem, offer: AdminOffer, marketCode: string, price: number) => void;
-  onPackPriceChange: (item: CatalogItem, marketCode: string, price: number) => void;
   onDetailChange: (item: CatalogItem, marketCode: string, detail: MarketDetail) => void;
   onUpsellChange: (item: CatalogItem, marketCode: string, productId: string, checked: boolean) => void;
 }) {
   return (
     <div className="grid gap-5">
-      <CatalogList title="Products" items={catalog.products} allProducts={catalog.products} markets={catalog.markets} warehouses={warehouses} marketFees={marketFees} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} onUpsellChange={onUpsellChange} />
-      <CatalogList title="Packs" items={catalog.packs} allProducts={catalog.products} markets={catalog.markets} warehouses={warehouses} marketFees={marketFees} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onPackPriceChange={onPackPriceChange} onDetailChange={onDetailChange} onUpsellChange={onUpsellChange} />
+      <CatalogList title="Products" items={catalog.products} allProducts={catalog.products} markets={catalog.markets} warehouses={warehouses} marketFees={marketFees} onToggle={onToggle} onMarketToggle={onMarketToggle} onOfferPriceChange={onOfferPriceChange} onDetailChange={onDetailChange} onUpsellChange={onUpsellChange} />
     </div>
   );
 }
@@ -811,7 +779,6 @@ function CatalogList({
   onToggle,
   onMarketToggle,
   onOfferPriceChange,
-  onPackPriceChange,
   onDetailChange,
   onUpsellChange,
 }: {
@@ -824,7 +791,6 @@ function CatalogList({
   onToggle: (item: CatalogItem, hidden: boolean) => void;
   onMarketToggle: (item: CatalogItem, marketCode: string, checked: boolean) => void;
   onOfferPriceChange: (item: CatalogItem, offer: AdminOffer, marketCode: string, price: number) => void;
-  onPackPriceChange: (item: CatalogItem, marketCode: string, price: number) => void;
   onDetailChange: (item: CatalogItem, marketCode: string, detail: MarketDetail) => void;
   onUpsellChange: (item: CatalogItem, marketCode: string, productId: string, checked: boolean) => void;
 }) {
@@ -1063,25 +1029,6 @@ function CatalogList({
                   </table>
                 </div>
               ) : null}
-              {item.prices ? (
-                <div className="mt-4 rounded-lg border border-charcoal/10 p-3">
-                  <p className="mb-2 text-xs font-black uppercase text-charcoal/50">Pack prices</p>
-                  <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {markets.map((market) => (
-                      <label key={market.code} className="grid min-w-0 gap-1 text-xs font-black uppercase text-charcoal/55">
-                        {market.code}
-                        <input
-                          className="focus-ring h-9 min-w-0 rounded-lg border border-charcoal/10 px-2 font-black"
-                          type="number"
-                          min={0}
-                          defaultValue={item.prices?.[market.code] ?? 0}
-                          onBlur={(event) => onPackPriceChange(item, market.code, Number(event.target.value))}
-                        />
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
             </div>
             ) : null}
           </div>
@@ -1097,11 +1044,11 @@ function ProfitCalculator({
   marketFees,
   onFeeUpdate,
 }: {
-  catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] };
+  catalog: { markets: MarketConfig[]; products: CatalogItem[] };
   marketFees: Record<string, MarketFees>;
   onFeeUpdate: (marketCode: string, next: Partial<MarketFees>) => void;
 }) {
-  const items = useMemo(() => [...catalog.products, ...catalog.packs], [catalog.products, catalog.packs]);
+  const items = useMemo(() => catalog.products, [catalog.products]);
   const allOptions = useMemo(() => catalogSkuOptions(catalog), [catalog]);
   const [itemId, setItemId] = useState("");
   const selectedItem = items.find((item) => item.id === itemId) ?? items[0];
@@ -1158,7 +1105,7 @@ function ProfitCalculator({
         </div>
         <div className="grid gap-3 md:grid-cols-3">
           <label className="grid gap-1 text-xs font-black uppercase text-charcoal/55">
-            Product or pack
+            Product
             <select
               className="focus-ring h-11 rounded-lg border border-charcoal/10 bg-white px-3 text-sm font-black"
               value={selectedItem?.id ?? ""}
@@ -1330,7 +1277,7 @@ function marketFeeFor(fees: Record<string, MarketFees>, marketCode: string) {
   return fees[marketCode] ?? DEFAULT_MARKET_FEES[marketCode] ?? DEFAULT_MARKET_FEES.ksa;
 }
 
-function catalogSkuOptions(catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] }): SkuOption[] {
+function catalogSkuOptions(catalog: { markets: MarketConfig[]; products: CatalogItem[] }): SkuOption[] {
   const options: SkuOption[] = [];
   const activeMarkets = catalog.markets;
   catalog.products.forEach((item) => {
@@ -1354,28 +1301,10 @@ function catalogSkuOptions(catalog: { markets: MarketConfig[]; products: Catalog
       });
     });
   });
-  catalog.packs.forEach((item) => {
-    activeMarkets.forEach((market) => {
-      if (!item.market_codes.includes(market.code)) return;
-      const detail = item.details?.[market.code] ?? { sku: item.id, cost: 0 };
-      const price = item.prices?.[market.code] ?? 0;
-      options.push({
-        key: `${item.type}:${item.id}:${market.code}:pack`,
-        item,
-        market,
-        sku: detail.sku,
-        costLocal: Number(detail.cost) || 0,
-        priceLocal: price,
-        quantity: 1,
-        label: item.name_en,
-        priceLabel: `${detail.sku} - pack - ${formatMoney(price, market.currency)}`,
-      });
-    });
-  });
   return options;
 }
 
-function marketSkuRows(catalog: { markets: MarketConfig[]; products: CatalogItem[]; packs: CatalogItem[] }, market: MarketConfig) {
+function marketSkuRows(catalog: { markets: MarketConfig[]; products: CatalogItem[] }, market: MarketConfig) {
   return [
     ...catalog.products.flatMap((item) => {
       if (!item.market_codes.includes(market.code)) return [];
@@ -1397,55 +1326,24 @@ function marketSkuRows(catalog: { markets: MarketConfig[]; products: CatalogItem
         } satisfies SkuOption,
       }];
     }),
-    ...catalog.packs.flatMap((item) => {
-      if (!item.market_codes.includes(market.code)) return [];
-      const detail = item.details?.[market.code] ?? { sku: item.id, cost: 0 };
-      return [{
-        option: {
-          key: `${item.type}:${item.id}:${market.code}:base`,
-          item,
-          market,
-          sku: detail.sku,
-          costLocal: Number(detail.cost) || 0,
-          priceLocal: item.prices?.[market.code] ?? 0,
-          quantity: 1,
-          label: item.name_en,
-          priceLabel: `${detail.sku} - pack`,
-        } satisfies SkuOption,
-      }];
-    }),
   ];
 }
 
 function catalogBreakevenOption(item: CatalogItem, market: MarketConfig, detail: MarketDetail): SkuOption | null {
   if (!item.market_codes.includes(market.code)) return null;
-  if (item.type === "product") {
-    const offer = item.offers?.find((candidate) => candidate.id === "one") ?? item.offers?.[0];
-    if (!offer) return null;
-    return {
-      key: `${item.type}:${item.id}:${market.code}:catalog-breakeven`,
-      item,
-      offer,
-      market,
-      sku: detail.sku,
-      costLocal: Number(detail.cost) || 0,
-      priceLocal: offer.prices[market.code] ?? 0,
-      quantity: offer.quantity,
-      label: item.name_en,
-      priceLabel: `${detail.sku} - ${offer.id}`,
-    };
-  }
-
+  const offer = item.offers?.find((candidate) => candidate.id === "one") ?? item.offers?.[0];
+  if (!offer) return null;
   return {
     key: `${item.type}:${item.id}:${market.code}:catalog-breakeven`,
     item,
+    offer,
     market,
     sku: detail.sku,
     costLocal: Number(detail.cost) || 0,
-    priceLocal: item.prices?.[market.code] ?? 0,
-    quantity: 1,
+    priceLocal: offer.prices[market.code] ?? 0,
+    quantity: offer.quantity,
     label: item.name_en,
-    priceLabel: `${detail.sku} - pack`,
+    priceLabel: `${detail.sku} - ${offer.id}`,
   };
 }
 

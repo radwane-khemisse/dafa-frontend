@@ -36,11 +36,6 @@ const productImages: Record<Product["id"], Record<ProductImageVariant, string>> 
   },
 };
 
-export const packImages: Record<string, string> = {
-  "prep-and-storage-pack": "/product-images/pack-prep-storage.webp",
-  "clean-counter-pack": "/product-images/pack-clean-counter.webp",
-};
-
 export function ProductVisual({
   product,
   label = "صورة المنتج",

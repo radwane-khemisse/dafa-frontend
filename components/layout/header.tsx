@@ -10,7 +10,6 @@ import { useCurrentMarket } from "@/lib/market-client";
 const links = [
   { href: "/", label: "الرئيسية" },
   { href: "/products", label: "المنتجات" },
-  { href: "/packs", label: "الباقات" },
   { href: "/about", label: "من نحن" },
   { href: "/contact", label: "تواصل معنا" },
 ];

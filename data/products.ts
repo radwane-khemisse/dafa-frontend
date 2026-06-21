@@ -1,4 +1,4 @@
-export type OfferId = "one" | "two" | "three" | "pack_pair" | "upsell_99";
+export type OfferId = "one" | "two" | "three" | "upsell_99";
 
 export type Offer = {
   id: OfferId;
