@@ -27,7 +27,7 @@ export default function ContactPage() {
           <p className="text-sm font-black text-date">تواصل معنا</p>
           <h1 className="mt-3 text-4xl font-black">عندك سؤال قبل تختارين العرض؟</h1>
           <p className="mt-4 leading-8 text-charcoal/70">
-            إذا تبغين تعرفين هل يناسبك منتج واحد، عرض القطعتين، أو الباقة، راسلينا. ونؤكد كل طلب قبل الشحن عشان توصل الشحنة ببيانات واضحة.
+            إذا تبغين تعرفين هل يناسبك منتج واحد أو عرض القطعتين، راسلينا. ونؤكد كل طلب قبل الشحن عشان توصل الشحنة ببيانات واضحة.
           </p>
           <div className="mt-7">
             <ButtonLink href="mailto:support@dafakitchen.shop" variant="gold">

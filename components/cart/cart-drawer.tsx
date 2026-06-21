@@ -31,43 +31,21 @@ type CartDisplayGroup = {
   title: string;
   totalPrice: number;
   items: CartItem[];
-  packId?: string;
 };
 
 function getCartDisplayGroups(items: CartItem[]): CartDisplayGroup[] {
-  const groups: CartDisplayGroup[] = [];
-  const seenPackIds = new Set<string>();
-
-  items.forEach((item) => {
-    if (!item.packId) {
-      groups.push({
-        id: `${item.productId}-${item.offerId}`,
-        title: item.titleAr,
-        totalPrice: item.totalPrice,
-        items: [item],
-      });
-      return;
-    }
-
-    if (seenPackIds.has(item.packId)) return;
-    seenPackIds.add(item.packId);
-    const packItems = items.filter((candidate) => candidate.packId === item.packId);
-    groups.push({
-      id: item.packId,
-      title: item.packName ?? "باقة مطبخ دفا",
-      totalPrice: packItems.reduce((sum, candidate) => sum + candidate.totalPrice, 0),
-      items: packItems,
-      packId: item.packId,
-    });
-  });
-
-  return groups;
+  return items.map((item) => ({
+    id: `${item.productId}-${item.offerId}`,
+    title: item.titleAr,
+    totalPrice: item.totalPrice,
+    items: [item],
+  }));
 }
 
 export function CartDrawer() {
   const router = useRouter();
   const market = useCurrentMarket();
-  const { items, isCartOpen, closeCart, removeItem, removePack, addItem, clearCart } = useCartStore();
+  const { items, isCartOpen, closeCart, removeItem, addItem, clearCart } = useCartStore();
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
   const [pendingCustomer, setPendingCustomer] = useState<CheckoutValues | null>(null);
   const [pendingEventId, setPendingEventId] = useState("");
@@ -269,7 +247,7 @@ export function CartDrawer() {
           {items.length === 0 ? (
             <div className="rounded-2xl bg-white p-6 text-center">
               <p className="font-black">السلة فارغة</p>
-              <p className="mt-2 text-sm text-charcoal/60">اختاري منتج أو باقة، والدفع يكون عند الاستلام بعد التأكيد.</p>
+              <p className="mt-2 text-sm text-charcoal/60">اختاري منتج، والدفع يكون عند الاستلام بعد التأكيد.</p>
             </div>
           ) : (
             <div className="grid gap-3">
@@ -279,7 +257,7 @@ export function CartDrawer() {
                 return (
                 <div key={group.id} className="rounded-2xl bg-white p-4">
                   <div className="flex items-start justify-between gap-3">
-                    {!group.packId && previewProduct ? (
+                    {previewProduct ? (
                       <ProductVisual
                         product={previewProduct}
                         compact
@@ -288,21 +266,12 @@ export function CartDrawer() {
                     ) : null}
                     <div className="min-w-0 flex-1">
                       <p className="font-black">{group.title}</p>
-                      {group.packId ? (
-                        <div className="mt-2 grid gap-1">
-                          {group.items.map((item) => (
-                            <p key={`${item.productId}-${item.offerId}`} className="text-xs font-bold leading-5 text-charcoal/55">
-                              {item.titleAr.replace(` - ضمن ${group.title}`, "")}
-                            </p>
-                          ))}
-                        </div>
-                      ) : null}
                     </div>
                     <button
                       type="button"
                       className="focus-ring rounded-lg p-2 text-red-700 hover:bg-red-50"
-                      onClick={() => (group.packId ? removePack(group.packId) : removeItem(group.items[0].productId, group.items[0].offerId))}
-                      aria-label={group.packId ? "حذف الباقة" : "حذف المنتج"}
+                      onClick={() => removeItem(group.items[0].productId, group.items[0].offerId)}
+                      aria-label="حذف المنتج"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -501,7 +470,7 @@ function CheckoutModal({
                 >
                   <span className="font-bold">{group.title}</span>
                   <span className="flex shrink-0 items-center gap-3 text-xs font-black text-charcoal/60">
-                    <span>{group.packId ? "باقة" : `x${group.items[0].quantity}`}</span>
+                    <span>{`x${group.items[0].quantity}`}</span>
                     <span className="text-sm text-charcoal">{formatMarketPrice(group.totalPrice, market)}</span>
                     <span className="hidden">
                     </span>
